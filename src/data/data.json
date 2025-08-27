@@ -1,0 +1,136 @@
+{
+  "user": {
+    "id": "u001",
+    "name": "Gucho",
+    "profile": {
+      "age": 29,
+      "gender": "male",
+      "height_cm": 178,
+      "weight_kg": 82.3
+    },
+    "metrics": {
+      "fitnessScore": [
+        { "date": "2025-08-10", "value": 85 },
+        { "date": "2025-07-10", "value": 83 },
+        { "date": "2025-06-10", "value": 80 },
+        { "date": "2025-05-10", "value": 78 }
+      ],
+      "weight": [
+        { "date": "2025-08-10", "value": 82.3 },
+        { "date": "2025-07-10", "value": 83.5 },
+        { "date": "2025-06-10", "value": 84.0 },
+        { "date": "2025-05-10", "value": 85.2 },
+        { "date": "2025-04-10", "value": 86.0 },
+        { "date": "2025-03-10", "value": 86.5 },
+        { "date": "2025-02-10", "value": 87.1 },
+        { "date": "2025-01-10", "value": 88.0 }
+      ],
+      "bodyFatPercent": [
+        { "date": "2025-08-10", "value": 18.5 },
+        { "date": "2025-07-10", "value": 18.9 },
+        { "date": "2025-06-10", "value": 19.2 },
+        { "date": "2025-05-10", "value": 19.6 },
+        { "date": "2025-04-10", "value": 20.0 },
+        { "date": "2025-03-10", "value": 20.4 },
+        { "date": "2025-02-10", "value": 20.7 },
+        { "date": "2025-01-10", "value": 21.0 }
+      ],
+      "muscleMass_kg": [
+        { "date": "2025-08-10", "value": 38.2 },
+        { "date": "2025-07-10", "value": 38.0 },
+        { "date": "2025-06-10", "value": 37.8 },
+        { "date": "2025-05-10", "value": 37.6 },
+        { "date": "2025-04-10", "value": 37.5 },
+        { "date": "2025-03-10", "value": 37.4 },
+        { "date": "2025-02-10", "value": 37.3 },
+        { "date": "2025-01-10", "value": 37.2 }
+      ],
+      "bmi": [
+        { "date": "2025-08-10", "value": 25.9 },
+        { "date": "2025-07-10", "value": 26.3 },
+        { "date": "2025-06-10", "value": 26.5 },
+        { "date": "2025-05-10", "value": 26.9 },
+        { "date": "2025-04-10", "value": 27.1 },
+        { "date": "2025-03-10", "value": 27.3 },
+        { "date": "2025-02-10", "value": 27.5 },
+        { "date": "2025-01-10", "value": 27.8 }
+      ],
+      "maxReps": [
+        { "date": "2025-08-10", "pushUps": 20, "squats": 40, "pullUps": 10 },
+        { "date": "2025-07-10", "pushUps": 18, "squats": 38, "pullUps": 9 },
+        { "date": "2025-06-10", "pushUps": 16, "squats": 36, "pullUps": 8 }
+      ],
+      "runningTimes": [
+        { "date": "2025-08-10", "value": 25 },
+        { "date": "2025-07-10", "value": 26 },
+        { "date": "2025-06-10", "value": 27 },
+        { "date": "2025-05-10", "value": 28 }
+      ],
+      "performance": [
+        { "date": "2025-08-10", "strength": 80, "speed": 75, "endurance": 78, "agility": 70 },
+        { "date": "2025-07-10", "strength": 78, "speed": 73, "endurance": 76, "agility": 68 }
+      ],
+      "steps": [
+        { "day": "Mon", "value": 8000 },
+        { "day": "Tue", "value": 9500 },
+        { "day": "Wed", "value": 7000 },
+        { "day": "Thu", "value": 11000 },
+        { "day": "Fri", "value": 8500 },
+        { "day": "Sat", "value": 12000 },
+        { "day": "Sun", "value": 9000 }
+      ],
+      "sleepHours": [
+        { "day": "Mon", "value": 7.5 },
+        { "day": "Tue", "value": 6.8 },
+        { "day": "Wed", "value": 8.0 },
+        { "day": "Thu", "value": 7.2 },
+        { "day": "Fri", "value": 7.8 },
+        { "day": "Sat", "value": 8.3 },
+        { "day": "Sun", "value": 7.0 }
+      ],
+      "hydration": [
+        { "date": "2025-08-10", "goal": 3000, "achieved": 2400 }
+      ],
+      "wellbeing": [
+        { "date": "2025-08-10", "energy": 7, "mood": 8, "sleepQuality": 7, "stress": 3 },
+        { "date": "2025-07-10", "energy": 6, "mood": 7, "sleepQuality": 6, "stress": 4 }
+      ],
+      "stressTrend": [
+        { "date": "2025-08-10", "value": 3 },
+        { "date": "2025-07-10", "value": 4 },
+        { "date": "2025-06-10", "value": 4.5 },
+        { "date": "2025-05-10", "value": 5 }
+      ]
+    }
+  },
+  "dailyTips": [
+    {
+      "id": "t001",
+      "title": "Hidratación Constante",
+      "description": "Bebe al menos 2 litros de agua al día para mantener tu cuerpo funcionando de manera óptima y tu piel hidratada.",
+      "imageUrl": "https://picsum.photos/400/300?random=1"
+    },
+    {
+      "id": "t002",
+      "title": "Sueño Reparador",
+      "description": "Busca dormir entre 7 y 9 horas cada noche. Un buen descanso es clave para la recuperación muscular y la salud mental.",
+      "imageUrl": "https://picsum.photos/400/300?random=2"
+    },
+    {
+      "id": "t003",
+      "title": "Estiramientos Diarios",
+      "description": "Dedica 10 minutos a estirar después de entrenar. Mejora tu flexibilidad, previene lesiones y alivia la tensión muscular.",
+      "imageUrl": "https://picsum.photos/400/300?random=3"
+    },
+    {
+      "id": "t004",
+      "title": "Alimentación Balanceada",
+      "description": "Asegúrate de incluir proteínas, carbohidratos complejos y grasas saludables en cada comida para una energía sostenida.",
+      "imageUrl": "https://picsum.photos/400/300?random=4"
+    }
+  ],
+  "progressPictures": [
+    { "id": "p001", "url": "/images/progress/2025-06.jpg", "date": "2025-06-01", "description": "Inicio del plan" },
+    { "id": "p002", "url": "/images/progress/2025-08.jpg", "date": "2025-08-01", "description": "Dos meses de progreso" }
+  ]
+}

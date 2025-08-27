@@ -2,7 +2,6 @@ import * as React from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import { Trash2 } from "lucide-react";
 import {
   Pagination,
   PaginationContent,
@@ -35,7 +34,6 @@ export function GenericResultsTable<T extends { date?: string }>({
   history,
   tableHeaders,
   renderHistoryRow,
-  onDelete,
   onClearAll,
 }: GenericResultsTableProps<T>) {
   const [currentPage, setCurrentPage] = React.useState(1);

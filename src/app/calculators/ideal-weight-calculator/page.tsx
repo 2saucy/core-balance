@@ -9,13 +9,14 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Trash2 } from "lucide-react";
 import { useCalculatorHistory } from "@/hooks/use-calculator-history";
-import { GenericResultsTable } from "@/components/results/generic-results.table";
+import { GenericResultsTable } from "@/components/generic-results-table";
 
 
 export default function IdealWeightPage() {
   const {
     results,
     history,
+    isLoading, // <-- Agregado: Se obtiene el estado de carga
     handleCalculate,
     handleDelete,
     handleClearAll,
@@ -49,6 +50,37 @@ export default function IdealWeightPage() {
     </div>
   );
 
+  const renderHistoryRow = (item: SavedIdealWeightResult, index: number) => (
+    <TableRow key={index}>
+      <TableCell className="font-medium">{item.date}</TableCell>
+      <TableCell>{item.idealWeight} {item.units === "metric" ? "kg" : "lbs"}</TableCell>
+      <TableCell>{item.formValues.currentWeight || "N/A"} {item.units === "metric" ? "kg" : "lbs"}</TableCell>
+      <TableCell><Badge>{item.formValues.bodyFrame}</Badge></TableCell>
+      <TableCell className="text-right">
+        <Button variant="ghost" size="icon" onClick={() => handleDelete(index)}>
+          <Trash2 className="h-4 w-4 text-red-500" />
+        </Button>
+      </TableCell>
+    </TableRow>
+  );
+
+  // <-- Agregado: Renderizado de carga condicional
+  if (isLoading) {
+    return (
+      <div className="flex justify-center py-8 px-4 md:px-12 lg:px-[15%]">
+        <div className="flex-1 max-w-4xl">
+          <div className="animate-pulse">
+            <div className="h-8 bg-gray-200 rounded w-1/4 mb-4"></div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+              <div className="h-96 bg-gray-200 rounded"></div>
+              <div className="h-96 bg-gray-200 rounded"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <CalculatorPageLayout
       title="Ideal Weight Calculator"
@@ -63,19 +95,7 @@ export default function IdealWeightPage() {
           history={history as SavedIdealWeightResult[]}
           tableHeaders={tableHeaders}
           renderCurrentResult={renderCurrentResult}
-          renderHistoryRow={(item: SavedIdealWeightResult, index: number) => (
-            <TableRow key={index}>
-              <TableCell className="font-medium">{item.date}</TableCell>
-              <TableCell>{item.idealWeight} {item.units === "metric" ? "kg" : "lbs"}</TableCell>
-              <TableCell>{item.formValues.currentWeight || "N/A"} {item.units === "metric" ? "kg" : "lbs"}</TableCell>
-              <TableCell><Badge>{item.formValues.bodyFrame}</Badge></TableCell>
-              <TableCell className="text-right">
-                <Button variant="ghost" size="icon" onClick={() => handleDelete(index)}>
-                  <Trash2 className="h-4 w-4 text-red-500" />
-                </Button>
-              </TableCell>
-            </TableRow>
-          )}
+          renderHistoryRow={renderHistoryRow}
           onDelete={handleDelete}
           onClearAll={handleClearAll}
         />

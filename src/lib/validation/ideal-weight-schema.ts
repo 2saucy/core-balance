@@ -1,6 +1,6 @@
 import z from "zod";
 
-export const idealWeightFormSchema = z.object({
+export const IdealWeightFormSchema = z.object({
   units: z.enum(["metric", "imperial"]),
   gender: z.enum(["male", "female", "other"]),
   age: z.coerce.number().min(0).max(120),

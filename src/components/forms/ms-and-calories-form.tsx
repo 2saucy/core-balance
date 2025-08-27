@@ -21,49 +21,13 @@ import {
 } from "@/components/ui/select"
 import { Input } from "@/components/ui/input"
 import { RadioGroup, RadioGroupItem } from "../ui/radio-group"
-import { macroSplitFormSchema, macroSplitFormValues } from "@/lib/validation/macro-split-schema"
-import { MacroSplitFormProps } from "@/lib/types/macro-split.types"
+import { calculateBMR, calculateCalorieTarget, calculateTDEE } from "@/lib/calculations/ms-and-calories"
+import { MSAndCaloriesFormProps, MSAndCaloriesFormValues } from "@/lib/types/ms-and-calories-types"
+import { MSAndCaloriesFormSchema } from "@/lib/validation/ms-and-calories-schema"
 
-// ---------------- CALC FUNCTIONS ----------------
-function calculateBMR(values: macroSplitFormValues) {
-    const { units, gender, age, height, weight } = values;
-
-    const weightKg = units === "imperial" ? weight * 0.453592 : weight;
-    const heightCm = units === "imperial" ? height * 2.54 : height;
-
-    // Mifflin-St Jeor Equation
-    if (gender === "male") {
-        return (10 * weightKg) + (6.25 * heightCm) - (5 * age) + 5;
-    } else if (gender === "female") {
-        return (10 * weightKg) + (6.25 * heightCm) - (5 * age) - 161;
-    }
-    // Fallback for "other" or undefined gender, using average
-    return (10 * weightKg) + (6.25 * heightCm) - (5 * age);
-}
-
-function calculateTDEE(bmr: number, activityLevel: macroSplitFormValues["activity_level"]) {
-    const activityMultipliers: Record<macroSplitFormValues["activity_level"], number> = {
-        sedentary: 1.2,
-        light: 1.375,
-        moderate: 1.55,
-        active: 1.725,
-        very_active: 1.9,
-    };
-    return bmr * activityMultipliers[activityLevel];
-}
-
-function calculateCalorieTarget(tdee: number, goal: macroSplitFormValues["goal"]) {
-    if (goal === "lose") {
-        return tdee - 500;
-    } else if (goal === "gain") {
-        return tdee + 500;
-    }
-    return tdee;
-}
-
-export default function MacroSplitForm({ onCalculate }: MacroSplitFormProps) {
-    const form = useForm<macroSplitFormValues>({
-        resolver: zodResolver(macroSplitFormSchema),
+export default function MSAndCaloriesForm({ onCalculate }: MSAndCaloriesFormProps) {
+    const form = useForm<MSAndCaloriesFormValues>({
+        resolver: zodResolver(MSAndCaloriesFormSchema),
         defaultValues: {
             units: "metric",
             gender: "male",
@@ -77,7 +41,7 @@ export default function MacroSplitForm({ onCalculate }: MacroSplitFormProps) {
         }
     });
 
-    const onSubmit = (values: macroSplitFormValues) => {
+    const onSubmit = (values: MSAndCaloriesFormValues) => {
         try {
             const bmr = calculateBMR(values);
             const tdee = calculateTDEE(bmr, values.activity_level);

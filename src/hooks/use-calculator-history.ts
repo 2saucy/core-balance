@@ -1,52 +1,96 @@
 import * as React from "react";
 import { toast } from "sonner";
 
-interface SavedResult<T> {
+interface SavedResult {
   date: string;
-  // Agrega todos los campos de tu tipo de resultado (T) aquí
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   [key: string]: any;
 }
 
-export function useCalculatorHistory<T>(storageKey: string) {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export function useCalculatorHistory<T extends Record<string, any>>(storageKey: string) {
   const [results, setResults] = React.useState<T | null>(null);
-  const [history, setHistory] = React.useState<SavedResult<T>[]>([]);
+  const [history, setHistory] = React.useState<(T & SavedResult)[]>([]);
+  const [isLoading, setIsLoading] = React.useState(true);
 
   // Cargar historial de localStorage al montar
   React.useEffect(() => {
-    const savedHistory = localStorage.getItem(storageKey);
-    if (savedHistory) {
-      setHistory(JSON.parse(savedHistory));
+    const loadHistory = () => {
+      try {
+        const savedHistory = localStorage.getItem(storageKey);
+        if (savedHistory) {
+          const parsed = JSON.parse(savedHistory);
+          setHistory(Array.isArray(parsed) ? parsed : []);
+        }
+      } catch (error) {
+        console.error(`Error loading history for ${storageKey}:`, error);
+        toast.error("Failed to load calculation history");
+        setHistory([]);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    loadHistory();
+  }, [storageKey]);
+
+  const saveToStorage = React.useCallback((data: (T & SavedResult)[]) => {
+    try {
+      localStorage.setItem(storageKey, JSON.stringify(data));
+    } catch (error) {
+      console.error(`Error saving to localStorage (${storageKey}):`, error);
+      toast.error("Failed to save calculation");
     }
   }, [storageKey]);
 
-  const handleCalculate = (res: T) => {
+  const handleCalculate = React.useCallback((res: T) => {
     setResults(res);
-    const newEntry: SavedResult<T> = {
+    
+    const newEntry: T & SavedResult = {
       ...res,
-      date: new Date().toISOString().split('T')[0],
+      date: new Date().toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit'
+      }),
     };
+
     setHistory(prevHistory => {
       const updatedHistory = [newEntry, ...prevHistory];
-      localStorage.setItem(storageKey, JSON.stringify(updatedHistory));
+      saveToStorage(updatedHistory);
       return updatedHistory;
     });
-    toast.success("Cálculo realizado y guardado!");
-  };
+    
+    toast.success("Calculation completed and saved!");
+  }, [saveToStorage]);
 
-  const handleDelete = (indexToDelete: number) => {
+  const handleDelete = React.useCallback((indexToDelete: number) => {
     setHistory(prevHistory => {
       const updatedHistory = prevHistory.filter((_, index) => index !== indexToDelete);
-      localStorage.setItem(storageKey, JSON.stringify(updatedHistory));
+      saveToStorage(updatedHistory);
       return updatedHistory;
     });
-    toast.success("Registro eliminado exitosamente!");
-  };
+    toast.success("Record deleted successfully!");
+  }, [saveToStorage]);
 
-  const handleClearAll = () => {
-    localStorage.removeItem(storageKey);
+  const handleClearAll = React.useCallback(() => {
     setHistory([]);
-    toast.success("Todos los registros han sido borrados!");
-  };
+    setResults(null);
+    try {
+      localStorage.removeItem(storageKey);
+      toast.success("All records cleared!");
+    } catch (error) {
+      console.error(`Error clearing localStorage (${storageKey}):`, error);
+      toast.error("Failed to clear records");
+    }
+  }, [storageKey]);
 
-  return { results, history, handleCalculate, handleDelete, handleClearAll };
+  return { 
+    results, 
+    history, 
+    isLoading,
+    handleCalculate, 
+    handleDelete, 
+    handleClearAll 
+  };
 }

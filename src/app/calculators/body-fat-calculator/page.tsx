@@ -8,16 +8,17 @@ import { TableCell, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Trash2 } from "lucide-react";
-import { GenericResultsTable } from "@/components/results/generic-results.table";
+import { GenericResultsTable } from "@/components/generic-results-table";
 import { useCalculatorHistory } from "@/hooks/use-calculator-history";
 
 export default function BodyFatPage() {
-  const { 
-    results, 
-    history, 
-    handleCalculate, 
-    handleDelete, 
-    handleClearAll 
+  const {
+    results,
+    history,
+    isLoading, // Agregado: Obtiene el estado de carga
+    handleCalculate,
+    handleDelete,
+    handleClearAll
   } = useCalculatorHistory<BodyFatResult>("body_fat_history");
 
   const getBodyFatClassification = (bodyFat: number) => {
@@ -110,9 +111,45 @@ export default function BodyFatPage() {
     </div>
   );
 
+  const renderHistoryRow = (item: SavedBodyFatResult, index: number) => (
+    <TableRow key={index}>
+      <TableCell className="font-medium">{item.date}</TableCell>
+      <TableCell>{item.bodyFatPercentage}%</TableCell>
+      <TableCell>
+        <Badge>{getBodyFatClassification(item.bodyFatPercentage)}</Badge>
+      </TableCell>
+      <TableCell>{item.fatMass} {item.units === "metric" ? "kg" : "lbs"}</TableCell>
+      <TableCell>{item.leanBodyMass} {item.units === "metric" ? "kg" : "lbs"}</TableCell>
+      <TableCell>{item.weight} {item.units === "metric" ? "kg" : "lbs"}</TableCell>
+      <TableCell>{item.height} {item.units === "metric" ? "cm" : "in"}</TableCell>
+      <TableCell className="text-right">
+        <Button variant="ghost" size="icon" onClick={() => handleDelete(index)}>
+          <Trash2 className="h-4 w-4 text-red-500" />
+        </Button>
+      </TableCell>
+    </TableRow>
+  );
+
+  // Agregado: Renderizado de carga condicional
+  if (isLoading) {
+    return (
+      <div className="flex justify-center py-8 px-4 md:px-12 lg:px-[15%]">
+        <div className="flex-1 max-w-4xl">
+          <div className="animate-pulse">
+            <div className="h-8 bg-gray-200 rounded w-1/4 mb-4"></div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+              <div className="h-96 bg-gray-200 rounded"></div>
+              <div className="h-96 bg-gray-200 rounded"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <CalculatorPageLayout
-      title="Body Fat Calculator"
+      title="Body Fat"
       description="This calculator estimates your body fat percentage using the Navy Method."
       form={<BodyFatCalculatorForm onCalculate={handleCalculate} />}
       infoTitle="What is Body Fat Percentage?"
@@ -124,24 +161,7 @@ export default function BodyFatPage() {
           history={history as SavedBodyFatResult[]}
           tableHeaders={tableHeaders}
           renderCurrentResult={renderCurrentResult}
-          renderHistoryRow={(item: SavedBodyFatResult, index: number) => (
-            <TableRow key={index}>
-              <TableCell className="font-medium">{item.date}</TableCell>
-              <TableCell>{item.bodyFatPercentage}%</TableCell>
-              <TableCell>
-                <Badge>{getBodyFatClassification(item.bodyFatPercentage)}</Badge>
-              </TableCell>
-              <TableCell>{item.fatMass} {item.units === "metric" ? "kg" : "lbs"}</TableCell>
-              <TableCell>{item.leanBodyMass} {item.units === "metric" ? "kg" : "lbs"}</TableCell>
-              <TableCell>{item.weight} {item.units === "metric" ? "kg" : "lbs"}</TableCell>
-              <TableCell>{item.height} {item.units === "metric" ? "cm" : "in"}</TableCell>
-              <TableCell className="text-right">
-                <Button variant="ghost" size="icon" onClick={() => handleDelete(index)}>
-                  <Trash2 className="h-4 w-4 text-red-500" />
-                </Button>
-              </TableCell>
-            </TableRow>
-          )}
+          renderHistoryRow={renderHistoryRow}
           onDelete={handleDelete}
           onClearAll={handleClearAll}
         />

@@ -1,7 +1,7 @@
 import z from "zod";
-import { idealWeightFormSchema } from "../validation/ideal-weight-schema";
+import { IdealWeightFormSchema } from "../validation/ideal-weight-schema";
 
-type IdealWeightFormValues = z.infer<typeof idealWeightFormSchema>;
+type IdealWeightFormValues = z.infer<typeof IdealWeightFormSchema>;
 
 interface IdealWeightResult {
     idealWeight: number;
@@ -22,7 +22,7 @@ interface IdealWeightResultsProps {
 }
 
 interface IdealWeightFormProps {
-  onCalculate: (results: any) => void;
+    onCalculate: (results: any) => void;
 }
 
 export type { IdealWeightFormValues, IdealWeightResult, SavedIdealWeightResult, IdealWeightResultsProps, IdealWeightFormProps };

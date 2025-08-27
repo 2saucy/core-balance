@@ -1,37 +1,30 @@
 "use client";
 
 import * as React from "react";
-import MacroSplitForm from "@/components/forms/macro-split-form";
-import { MacroSplitResults } from "@/components/results/macrosplit-results";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { macroSplitFormValues } from "@/lib/validation/macro-split-schema";
-import { toast } from "sonner";
-import { MacroSplitResult, SavedMacroSplitResult } from "@/lib/types/macro-split.types";
-
-
-const MACRO_SPLIT_STORAGE_KEY = "macro_split_history";
+import MSAndCaloriesForm from "@/components/forms/ms-and-calories-form";
+import { MacroSplitResult, SavedMacroSplitResult } from "@/lib/types/ms-and-calories-types";
+import { useCalculatorHistory } from "@/hooks/use-calculator-history";
+import { TableCell, TableRow } from "@/components/ui/table";
+import { Button } from "@/components/ui/button";
+import { Trash2 } from "lucide-react";
+import { CalculatorPageLayout } from "@/components/layout/calculator-page-layout";
+import { GenericResultsTable } from "@/components/generic-results-table";
 
 export default function MacroSplitPage() {
-  const [results, setResults] = React.useState<MacroSplitResult | null>(null);
-  const [history, setHistory] = React.useState<SavedMacroSplitResult[]>([]);
+  const {
+    results,
+    history,
+    isLoading,
+    handleCalculate: baseHandleCalculate,
+    handleDelete,
+    handleClearAll
+  } = useCalculatorHistory<MacroSplitResult>("macro_split_history");
 
-  React.useEffect(() => {
-    const savedHistory = localStorage.getItem(MACRO_SPLIT_STORAGE_KEY);
-    if (savedHistory) {
-      setHistory(JSON.parse(savedHistory));
-    }
-  }, []);
+  const handleCalculate = React.useCallback((res: Omit<MacroSplitResult, 'protein' | 'fat' | 'carbs'>) => {
+    const proteinRatio = 0.3;
+    const fatRatio = 0.25;
+    const carbsRatio = 0.45;
 
-  const handleCalculate = (res: MacroSplitResult) => {
-    // Definir las proporciones de macronutrientes aquí.
-    // Puedes obtenerlas de formValues.dietPreference si está disponible
-    // o usar un valor predeterminado.
-    const proteinRatio = 0.3; // 30%
-    const fatRatio = 0.25; // 25%
-    const carbsRatio = 0.45; // 45%
-
-    // Calcular los gramos de cada macro
     const proteinGrams = Math.round((res.calorieTarget * proteinRatio) / 4);
     const fatGrams = Math.round((res.calorieTarget * fatRatio) / 9);
     const carbsGrams = Math.round((res.calorieTarget * carbsRatio) / 4);
@@ -43,102 +36,119 @@ export default function MacroSplitPage() {
       carbs: carbsGrams,
     };
 
-    setResults(newResult);
-    
-    const newEntry: SavedMacroSplitResult = {
-      ...newResult,
-      date: new Date().toISOString().split('T')[0],
-    };
-    
-    setHistory(prevHistory => {
-      const updatedHistory = [newEntry, ...prevHistory];
-      localStorage.setItem(MACRO_SPLIT_STORAGE_KEY, JSON.stringify(updatedHistory));
-      return updatedHistory;
-    });
-  };
+    baseHandleCalculate(newResult);
+  }, [baseHandleCalculate]);
 
-  const handleDelete = (indexToDelete: number) => {
-    setHistory(prevHistory => {
-      const updatedHistory = prevHistory.filter((_, index) => index !== indexToDelete);
-      localStorage.setItem(MACRO_SPLIT_STORAGE_KEY, JSON.stringify(updatedHistory));
-      return updatedHistory;
-    });
-    toast.success("Record deleted successfully!");
-  };
-
-  const handleClearAll = () => {
-    localStorage.removeItem(MACRO_SPLIT_STORAGE_KEY);
-    setHistory([]);
-    toast.success("All records cleared!");
-  };
-
-  return (
-    <div className="flex justify-center py-12 px-4 md:px-12 lg:px-[15%]">
-      <div className="flex-1 max-w-4xl space-y-8">
-        <div>
-          <h1 className="text-3xl font-semibold mb-2">Macro Split Calculator</h1>
-          <p className="text-sm text-muted-foreground">
-            This Macro Split Calculator estimates your daily calorie needs (TDEE) and macronutrient targets based on your personal data, activity level, goal, and diet preference.
-          </p>
-        </div>
-
-        {/* Top Section: Form and Info Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-          {/* Left Column: Calculator Form Card */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Calculate Your Macro Split</CardTitle>
-              <CardDescription>Enter your information below.</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <MacroSplitForm onCalculate={handleCalculate} />
-            </CardContent>
-          </Card>
-
-          {/* Right Column: Information Card */}
-          <Card>
-            <CardHeader className="space-y-2">
-              <CardTitle>How It Works</CardTitle>
-              <CardDescription>Understanding the Calculation</CardDescription>
-            </CardHeader>
-            <ScrollArea className="text-sm text-muted-foreground p-0 max-h-[420px]">
-              <div className="p-6 space-y-4">
-                <p>
-                  This calculator uses the Mifflin-St Jeor equation to estimate your Basal Metabolic Rate (BMR), which is the number of calories your body burns at rest.
-                </p>
-                <p>
-                  Then, it multiplies your BMR by an activity factor to determine your Total Daily Energy Expenditure (TDEE), the total calories you burn each day, including exercise.
-                </p>
-                <ul className="list-disc list-inside space-y-1">
-                  <li>
-                    <b>Sedentary:</b> Little or no exercise (x 1.2)
-                  </li>
-                  <li>
-                    <b>Lightly Active:</b> Exercise/sports 1-3 days/week (x 1.375)
-                  </li>
-                  <li>
-                    <b>Moderately Active:</b> Exercise/sports 3-5 days/week (x 1.55)
-                  </li>
-                  <li>
-                    <b>Active:</b> Exercise/sports 6-7 days a week (x 1.725)
-                  </li>
-                  <li>
-                    <b>Very Active:</b> Very hard exercise/physical job or training twice a day (x 1.9)
-                  </li>
-                </ul>
-                <p>
-                  Finally, it adjusts your TDEE based on your goal (maintain, lose, or gain weight) and calculates your macronutrient split based on your diet preference.
-                </p>
-              </div>
-            </ScrollArea>
-          </Card>
-        </div>
-
-        {/* Bottom Section: Results Card */}
-        <div className="space-y-8">
-          <MacroSplitResults results={results} history={history} onDelete={handleDelete} onClearAll={handleClearAll} />
-        </div>
+  const renderCurrentResult = (res: MacroSplitResult) => (
+    <div className="flex flex-col gap-4">
+      <div className="flex items-center gap-4">
+        <span className="text-4xl font-bold tracking-tight">{res.calorieTarget.toFixed(0)}</span>
+        <span className="text-xl text-muted-foreground">kcal/day</span>
+      </div>
+      <div className="space-y-1 mt-4">
+        <p className="text-sm text-muted-foreground">
+          <span className="font-bold">Protein:</span> {res.protein} g
+        </p>
+        <p className="text-sm text-muted-foreground">
+          <span className="font-bold">Fat:</span> {res.fat} g
+        </p>
+        <p className="text-sm text-muted-foreground">
+          <span className="font-bold">Carbs:</span> {res.carbs} g
+        </p>
       </div>
     </div>
+  );
+
+  const tableHeaders = ["Date", "Calorie Target", "Protein", "Fat", "Carbs", "Activity Level", "Goal"];
+
+  const renderHistoryRow = (item: SavedMacroSplitResult, index: number) => (
+    <TableRow key={index}>
+      <TableCell className="font-medium">{item.date}</TableCell>
+      <TableCell>{item.calorieTarget.toFixed(0)} kcal</TableCell>
+      <TableCell>{item.protein} g</TableCell>
+      <TableCell>{item.fat} g</TableCell>
+      <TableCell>{item.carbs} g</TableCell>
+      <TableCell>{item.formValues.activity_level}</TableCell>
+      <TableCell>{item.formValues.goal}</TableCell>
+      <TableCell className="text-right">
+        <Button variant="ghost" size="icon" onClick={() => handleDelete(index)}>
+          <Trash2 className="h-4 w-4 text-red-500" />
+        </Button>
+      </TableCell>
+    </TableRow>
+  );
+
+  if (isLoading) {
+    return (
+      <div className="flex justify-center py-12 px-4 md:px-12 lg:px-[15%]">
+        <div className="flex-1 max-w-4xl">
+          <div className="animate-pulse">
+            <div className="h-8 bg-gray-200 rounded w-1/3 mb-4"></div>
+            <div className="h-4 bg-gray-200 rounded w-2/3 mb-8"></div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+              <div className="h-96 bg-gray-200 rounded"></div>
+              <div className="h-96 bg-gray-200 rounded"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Contenido del formulario de Macro Split
+  const macroFormContent = <MSAndCaloriesForm onCalculate={handleCalculate} />;
+
+  // Contenido de la información sobre Macro Split
+  const macroInfoContent = (
+    <div className="space-y-4">
+      <p>
+        This calculator uses the Mifflin-St Jeor equation to estimate your Basal Metabolic Rate (BMR), which is the number of calories your body burns at rest.
+      </p>
+      <p>
+        Then, it multiplies your BMR by an activity factor to determine your Total Daily Energy Expenditure (TDEE), the total calories you burn each day, including exercise.
+      </p>
+      <ul className="list-disc list-inside space-y-1">
+        <li>
+          <b>Sedentary:</b> Little or no exercise (x 1.2)
+        </li>
+        <li>
+          <b>Lightly Active:</b> Exercise/sports 1-3 days/week (x 1.375)
+        </li>
+        <li>
+          <b>Moderately Active:</b> Exercise/sports 3-5 days/week (x 1.55)
+        </li>
+        <li>
+          <b>Active:</b> Exercise/sports 6-7 days a week (x 1.725)
+        </li>
+        <li>
+          <b>Very Active:</b> Very hard exercise/physical job or training twice a day (x 1.9)
+        </li>
+      </ul>
+      <p>
+        Finally, it adjusts your TDEE based on your goal (maintain, lose, or gain weight) and calculates your macronutrient split based on your diet preference.
+      </p>
+    </div>
+  );
+
+  return (
+    <CalculatorPageLayout
+      title="Macro Split Calculator"
+      description="This Macro Split Calculator estimates your daily calorie needs (TDEE) and macronutrient targets based on your personal data, activity level, goal, and diet preference."
+      form={macroFormContent}
+      infoTitle="How It Works"
+      infoDescription="Understanding the Calculation"
+      infoContent={macroInfoContent}
+      results={
+        <GenericResultsTable<SavedMacroSplitResult>
+          currentResult={results as SavedMacroSplitResult | null}
+          history={history as SavedMacroSplitResult[]}
+          tableHeaders={tableHeaders}
+          renderCurrentResult={renderCurrentResult}
+          renderHistoryRow={renderHistoryRow}
+          onDelete={handleDelete}
+          onClearAll={handleClearAll}
+        />
+      }
+    />
   );
 }

@@ -3,7 +3,7 @@ import { ThemeProvider } from "@/components/theme-provider";
 import "./globals.css";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/layout/app-sidebar";
-import { Toaster } from "@/components/ui/sonner"
+import { Toaster } from "@/components/ui/sonner";
 
 export const metadata = {
   title: "CoreBalance",

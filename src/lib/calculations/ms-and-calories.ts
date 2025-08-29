@@ -1,7 +1,5 @@
 // src/lib/calculations/calories.ts
-
-import { CaloriesResult } from "../types/calories.types";
-import { macroSplitFormValues as CaloriesFormValues } from "../types/ms-and-calories-types";
+import { CaloriesResult, MSAndCaloriesFormValues } from "../types/ms-and-calories-types";
 
 
 // Activity level multipliers for TDEE calculation
@@ -16,7 +14,7 @@ const ACTIVITY_MULTIPLIERS = {
 /**
  * Calculate Basal Metabolic Rate using Mifflin-St Jeor Equation
  */
-export function calculateBMR(values: CaloriesFormValues): number {
+export function calculateBMR(values: MSAndCaloriesFormValues): number {
   const { units, gender, age, height, weight } = values;
 
   // Convert to metric if needed
@@ -63,7 +61,7 @@ export function calculateCalorieTarget(tdee: number, goal: "maintain" | "lose" |
 /**
  * Main calculation function for calories
  */
-export function calculateCalories(values: CaloriesFormValues): CaloriesResult {
+export function calculateCalories(values: MSAndCaloriesFormValues): CaloriesResult {
   const bmr = calculateBMR(values);
   const tdee = calculateTDEE(bmr, values.activity_level);
   const calorieTarget = calculateCalorieTarget(tdee, values.goal);

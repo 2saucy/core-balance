@@ -37,12 +37,12 @@ export function CalculatorPageLayout({
               <CardTitle>Calculate Your {title}</CardTitle>
               <CardDescription>Enter your information below.</CardDescription>
             </CardHeader>
-            <CardContent>{form}</CardContent>
+            <CardContent className="h-full">{form}</CardContent>
           </Card>
 
           {/* Right Column: Information Card */}
-          <Card>
-            <CardHeader className="space-y-2">
+          <Card className="gap-0">
+            <CardHeader>
               <CardTitle>{infoTitle}</CardTitle>
               <CardDescription>{infoDescription}</CardDescription>
             </CardHeader>

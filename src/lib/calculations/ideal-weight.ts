@@ -25,10 +25,11 @@ export function calculateIdealWeight(values: IdealWeightFormValues) {
   // Mostrar en unidades correctas
   const displayWeight = units === "metric" ? idealWeightKg : idealWeightKg / 0.453592;
 
-  const diff = currentWeight ? currentWeight - displayWeight : undefined;
+  const idealWeightRounded = Math.round(displayWeight);
+  const diff = currentWeight ? idealWeightRounded - currentWeight : undefined;
 
   return {
-    idealWeight: Math.round(displayWeight),
+    idealWeight: idealWeightRounded,
     difference: diff !== undefined ? Math.round(diff) : undefined,
     units,
     formValues: values,

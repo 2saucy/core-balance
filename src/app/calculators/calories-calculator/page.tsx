@@ -2,13 +2,13 @@
 
 import * as React from "react";
 import MSAndCaloriesForm from "@/components/forms/ms-and-calories-form";
-import { CaloriesResult, SavedCaloriesResult } from "@/lib/types/calories.types";
 import { useCalculatorHistory } from "@/hooks/use-calculator-history";
 import { TableCell, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Trash2 } from "lucide-react";
 import { CalculatorPageLayout } from "@/components/layout/calculator-page-layout";
 import { GenericResultsTable } from "@/components/generic-results-table";
+import { CaloriesResult, SavedCaloriesResult } from "@/lib/types/ms-and-calories-types";
 
 export default function CaloriesPage() {
   const {
@@ -89,11 +89,13 @@ export default function CaloriesPage() {
       <h3><b>Calorie Target</b></h3>
       <p>
         The Calorie Target is your TDEE adjusted for your weight goal (maintenance, loss, or gain).
-        <ul className="list-disc list-inside mt-2">
+      </p>
+      <div className="mt-2">
+        <ul className="list-disc list-inside">
           <li>For weight loss, a deficit of 500 kcal is typically suggested.</li>
           <li>For weight gain, a surplus of 500 kcal is typically suggested.</li>
         </ul>
-      </p>
+      </div>
     </div>
   );
 

@@ -12,19 +12,19 @@ import { CalculatorPageLayout } from "@/components/layout/calculator-page-layout
 import { GenericResultsTable } from "@/components/generic-results-table";
 
 export default function BMIPage() {
-  const { 
-    results, 
-    history, 
+  const {
+    results,
+    history,
     isLoading,
-    handleCalculate, 
-    handleDelete, 
-    handleClearAll 
+    handleCalculate,
+    handleDelete,
+    handleClearAll
   } = useCalculatorHistory<BMIResult>("bmi_history");
 
   const getClassification = (bmi: number) => {
     if (bmi < 18.5) return "Underweight";
-    if (bmi >= 18.5 && bmi <= 24.9) return "Normal";
-    if (bmi >= 25 && bmi <= 29.9) return "Overweight";
+    if (bmi < 25) return "Normal";
+    if (bmi < 30) return "Overweight";
     return "Obese";
   };
 
@@ -127,13 +127,13 @@ export default function BMIPage() {
       infoContent={bmiInfoContent}
       results={
         <GenericResultsTable<SavedBMIResult>
-          currentResult={results as SavedBMIResult | null} 
-          history={history as SavedBMIResult[]} 
+          currentResult={results as SavedBMIResult | null}
+          history={history as SavedBMIResult[]}
           tableHeaders={tableHeaders}
           renderCurrentResult={renderCurrentResult}
           renderHistoryRow={renderHistoryRow}
-          onDelete={handleDelete} 
-          onClearAll={handleClearAll} 
+          onDelete={handleDelete}
+          onClearAll={handleClearAll}
         />
       }
     />

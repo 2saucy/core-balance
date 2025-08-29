@@ -15,7 +15,7 @@ import { calculateBodyFat } from "@/lib/calculations/body-fat";
 
 
 export default function BodyFatCalculatorForm({ onCalculate }: BodyFatCalculatorFormProps) {
-  
+
   const form = useForm<BodyFatFormValues>({
     resolver: zodResolver(BodyFatSchema),
     defaultValues: {
@@ -32,26 +32,29 @@ export default function BodyFatCalculatorForm({ onCalculate }: BodyFatCalculator
   const gender = form.watch("gender");
 
   const onSubmit = (values: BodyFatFormValues) => {
-    const results = calculateBodyFat(values);
-    onCalculate(results);
-    toast.success("Body Fat calculated and saved!");
+    try {
+      const results = calculateBodyFat(values);
+      onCalculate(results);
+      toast.success("Calculation done!");
+    } catch (error) {
+      console.error(error);
+      toast.error("Failed to calculate body fat.");
+    }
   };
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="flex flex-col min-h-full">
+      <form onSubmit={form.handleSubmit(onSubmit)} className="flex flex-col h-full">
         <div className="space-y-6">
           {/* Units */}
           <FormField control={form.control} name="units" render={({ field }) => (
             <FormItem>
               <FormLabel>Units</FormLabel>
-              <Select onValueChange={field.onChange} value={field.value} disabled={form.formState.isSubmitting}>
-                <FormControl>
-                  <SelectTrigger><SelectValue placeholder="Select units" /></SelectTrigger>
-                </FormControl>
+              <Select onValueChange={field.onChange} defaultValue={field.value}>
+                <FormControl><SelectTrigger><SelectValue /></SelectTrigger></FormControl>
                 <SelectContent>
-                  <SelectItem value="metric">Metric (kg, cm)</SelectItem>
-                  <SelectItem value="imperial">Imperial (lbs, in)</SelectItem>
+                  <SelectItem value="metric">Metric (cm, kg)</SelectItem>
+                  <SelectItem value="imperial">Imperial (in, lbs)</SelectItem>
                 </SelectContent>
               </Select>
               <FormMessage />
@@ -60,17 +63,17 @@ export default function BodyFatCalculatorForm({ onCalculate }: BodyFatCalculator
 
           {/* Gender */}
           <FormField control={form.control} name="gender" render={({ field }) => (
-            <FormItem className="space-y-3">
+            <FormItem>
               <FormLabel>Gender</FormLabel>
               <FormControl>
                 <RadioGroup onValueChange={field.onChange} defaultValue={field.value} className="flex gap-4">
                   <FormItem className="flex items-center space-x-2 space-y-0">
                     <FormControl><RadioGroupItem value="male" /></FormControl>
-                    <FormLabel>Male</FormLabel>
+                    <FormLabel className="font-normal">Male</FormLabel>
                   </FormItem>
                   <FormItem className="flex items-center space-x-2 space-y-0">
                     <FormControl><RadioGroupItem value="female" /></FormControl>
-                    <FormLabel>Female</FormLabel>
+                    <FormLabel className="font-normal">Female</FormLabel>
                   </FormItem>
                 </RadioGroup>
               </FormControl>
@@ -78,8 +81,8 @@ export default function BodyFatCalculatorForm({ onCalculate }: BodyFatCalculator
             </FormItem>
           )} />
 
-          {/* Height & Weight */}
           <div className="flex gap-4">
+            {/* Height */}
             <FormField control={form.control} name="height" render={({ field }) => (
               <FormItem className="w-1/2">
                 <FormLabel>Height</FormLabel>
@@ -87,6 +90,8 @@ export default function BodyFatCalculatorForm({ onCalculate }: BodyFatCalculator
                 <FormMessage />
               </FormItem>
             )} />
+
+            {/* Weight */}
             <FormField control={form.control} name="weight" render={({ field }) => (
               <FormItem className="w-1/2">
                 <FormLabel>Weight</FormLabel>
@@ -96,8 +101,8 @@ export default function BodyFatCalculatorForm({ onCalculate }: BodyFatCalculator
             )} />
           </div>
 
-          {/* Neck & Waist */}
           <div className="flex gap-4">
+            {/* Neck */}
             <FormField control={form.control} name="neck" render={({ field }) => (
               <FormItem className="w-1/2">
                 <FormLabel>Neck</FormLabel>
@@ -105,6 +110,7 @@ export default function BodyFatCalculatorForm({ onCalculate }: BodyFatCalculator
                 <FormMessage />
               </FormItem>
             )} />
+            {/* Waist */}
             <FormField control={form.control} name="waist" render={({ field }) => (
               <FormItem className="w-1/2">
                 <FormLabel>Waist</FormLabel>
@@ -124,7 +130,7 @@ export default function BodyFatCalculatorForm({ onCalculate }: BodyFatCalculator
           )} />
         </div>
 
-        <Button className="mt-auto" type="submit">Calculate Body</Button>
+        <Button className="mt-auto" type="submit">Calculate</Button>
       </form>
     </Form>
   );

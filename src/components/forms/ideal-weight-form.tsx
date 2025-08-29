@@ -10,11 +10,10 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-  FormDescription,
 } from "@/components/ui/form";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
-import { RadioGroup, RadioGroupItem } from "../ui/radio-group";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { IdealWeightFormSchema } from "@/lib/validation/ideal-weight-schema";
 import { IdealWeightFormProps, IdealWeightFormValues } from "@/lib/types/ideal-weight-types";
 import { calculateIdealWeight } from "@/lib/calculations/ideal-weight";
@@ -38,87 +37,73 @@ export default function IdealWeightForm({ onCalculate }: IdealWeightFormProps) {
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 max-w-3xl mx-auto py-10">
-        {/* Units */}
-        <FormField control={form.control} name="units" render={({ field }) => (
-          <FormItem>
-            <FormLabel>Units</FormLabel>
-            <Select onValueChange={field.onChange} defaultValue={field.value}>
+      <form onSubmit={form.handleSubmit(onSubmit)} className="flex flex-col gap-6 h-full">
+        <div className="space-y-6">
+          {/* Gender */}
+          <FormField control={form.control} name="gender" render={({ field }) => (
+            <FormItem>
+              <FormLabel>Gender</FormLabel>
               <FormControl>
-                <SelectTrigger><SelectValue placeholder="Select units" /></SelectTrigger>
-              </FormControl>
-              <SelectContent>
-                <SelectItem value="metric">Metric (kg, cm)</SelectItem>
-                <SelectItem value="imperial">Imperial (lbs, in)</SelectItem>
-              </SelectContent>
-            </Select>
-            <FormMessage />
-          </FormItem>
-        )} />
-
-        {/* Gender */}
-        <FormField control={form.control} name="gender" render={({ field }) => (
-          <FormItem>
-            <FormLabel>Gender</FormLabel>
-            <FormControl>
-              <RadioGroup onValueChange={field.onChange} className="flex space-x-6">
-                {["male", "female", "other"].map(value => (
-                  <FormItem key={value} className="flex items-center space-x-2">
-                    <FormControl><RadioGroupItem value={value} /></FormControl>
-                    <FormLabel className="font-normal">{value}</FormLabel>
+                <RadioGroup onValueChange={field.onChange} defaultValue={field.value} className="flex gap-4">
+                  <FormItem className="flex items-center space-x-2 space-y-0">
+                    <FormControl><RadioGroupItem value="male" /></FormControl>
+                    <FormLabel className="font-normal">Male</FormLabel>
                   </FormItem>
-                ))}
-              </RadioGroup>
-            </FormControl>
-            <FormMessage />
-          </FormItem>
-        )} />
+                  <FormItem className="flex items-center space-x-2 space-y-0">
+                    <FormControl><RadioGroupItem value="female" /></FormControl>
+                    <FormLabel className="font-normal">Female</FormLabel>
+                  </FormItem>
+                </RadioGroup>
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )} />
 
-        {/* Height */}
-        <FormField control={form.control} name="height" render={({ field }) => (
-          <FormItem>
-            <FormLabel>Height</FormLabel>
-            <FormControl><Input type="number" {...field} /></FormControl>
-            <FormDescription>Height in cm or inches depending on units</FormDescription>
-            <FormMessage />
-          </FormItem>
-        )} />
+          {/* Height */}
+          <FormField control={form.control} name="height" render={({ field }) => (
+            <FormItem>
+              <FormLabel>Height</FormLabel>
+              <FormControl><Input type="number" {...field} /></FormControl>
+              <FormMessage />
+            </FormItem>
+          )} />
 
-        {/* Age */}
-        <FormField control={form.control} name="age" render={({ field }) => (
-          <FormItem>
-            <FormLabel>Age</FormLabel>
-            <FormControl><Input type="number" {...field} /></FormControl>
-            <FormMessage />
-          </FormItem>
-        )} />
+          {/* Age */}
+          <FormField control={form.control} name="age" render={({ field }) => (
+            <FormItem>
+              <FormLabel>Age</FormLabel>
+              <FormControl><Input type="number" {...field} /></FormControl>
+              <FormMessage />
+            </FormItem>
+          )} />
 
-        {/* Body Frame */}
-        <FormField control={form.control} name="bodyFrame" render={({ field }) => (
-          <FormItem>
-            <FormLabel>Body Frame</FormLabel>
-            <Select onValueChange={field.onChange} defaultValue={field.value}>
-              <FormControl><SelectTrigger><SelectValue placeholder="Select body frame" /></SelectTrigger></FormControl>
-              <SelectContent>
-                <SelectItem value="small">Small</SelectItem>
-                <SelectItem value="medium">Medium</SelectItem>
-                <SelectItem value="large">Large</SelectItem>
-              </SelectContent>
-            </Select>
-            <FormMessage />
-          </FormItem>
-        )} />
+          {/* Body Frame */}
+          <FormField control={form.control} name="bodyFrame" render={({ field }) => (
+            <FormItem>
+              <FormLabel>Body Frame</FormLabel>
+              <Select onValueChange={field.onChange} defaultValue={field.value}>
+                <FormControl><SelectTrigger><SelectValue placeholder="Select body frame" /></SelectTrigger></FormControl>
+                <SelectContent>
+                  <SelectItem value="small">Small</SelectItem>
+                  <SelectItem value="medium">Medium</SelectItem>
+                  <SelectItem value="large">Large</SelectItem>
+                </SelectContent>
+              </Select>
+              <FormMessage />
+            </FormItem>
+          )} />
 
-        {/* Current Weight */}
-        <FormField control={form.control} name="currentWeight" render={({ field }) => (
-          <FormItem>
-            <FormLabel>Current Weight (optional)</FormLabel>
-            <FormControl><Input type="number" {...field} /></FormControl>
-            <FormMessage />
-          </FormItem>
-        )} />
+          {/* Current Weight */}
+          <FormField control={form.control} name="currentWeight" render={({ field }) => (
+            <FormItem>
+              <FormLabel>Current Weight (optional)</FormLabel>
+              <FormControl><Input type="number" {...field} /></FormControl>
+              <FormMessage />
+            </FormItem>
+          )} />
+        </div>
 
-        <Button type="submit">Calculate</Button>
+        <Button className="mt-auto" type="submit">Calculate</Button>
       </form>
     </Form>
   );

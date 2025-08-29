@@ -7,9 +7,8 @@ import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/componen
 import { Label } from "@/components/ui/label";
 import { CirclePlus, Save, Trash, History, Dumbbell, TrendingUp, Calendar, SquareStack } from "lucide-react";
 import { toast } from "sonner";
-import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogClose, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 
 interface RepTrackerProps {
   exerciseName: string;
@@ -192,7 +191,7 @@ export default function RepTracker({ exerciseName, category }: RepTrackerProps) 
                     {logs.map((log, index) => (
                       <div key={index} className="rounded-lg border p-4">
                         <div className="flex justify-between items-center mb-2">
-                          <span className="font-medium text-sm text-gray-600 dark:text-gray-400">{log.date}</span>
+                          <span className="font-medium text-sm text-gray-600 dark:text-gray-400">Log date: {log.date}</span>
                           <Button variant="ghost" size="icon" onClick={() => handleDeleteLog(index)}>
                             <Trash className="size-4 text-red-500" />
                           </Button>
@@ -211,6 +210,9 @@ export default function RepTracker({ exerciseName, category }: RepTrackerProps) 
               ) : (
                 <p className="text-muted-foreground text-sm">No workout history available.</p>
               )}
+              <DialogClose asChild>
+                <Button className="mt-4 w-full">Close</Button>
+              </DialogClose>
             </DialogContent>
           </Dialog>
         </div>

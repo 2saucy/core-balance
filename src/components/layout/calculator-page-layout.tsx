@@ -46,7 +46,7 @@ export function CalculatorPageLayout({
               <CardTitle>{infoTitle}</CardTitle>
               <CardDescription>{infoDescription}</CardDescription>
             </CardHeader>
-            <ScrollArea className="text-sm text-muted-foreground p-0 max-h-[420px]">
+            <ScrollArea className="text-sm text-muted-foreground p-0 max-h-[400px]">
               <div className="p-6 space-y-4">
                 {infoContent}
               </div>

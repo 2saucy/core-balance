@@ -3,7 +3,6 @@ import { BicepsFlexed, Calculator, ChartColumn, Dumbbell, Home, Search, Settings
 import {
     Sidebar,
     SidebarContent,
-    SidebarFooter,
     SidebarGroup,
     SidebarGroupContent,
     SidebarGroupLabel,
@@ -15,13 +14,13 @@ import {
     SidebarMenuSubButton,
     SidebarMenuSubItem,
 } from "@/components/ui/sidebar"
-import { ModeToggle } from "../mode-toggle"
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@radix-ui/react-collapsible"
+import { SettingsDropdown } from "../settings-dropdown"
 
 const items = [
     {
         title: "Home",
-        url: "#",
+        url: "/",
         icon: Home,
     },
     {
@@ -72,16 +71,6 @@ const items = [
             { title: "Macro Split", url: "/calculators/macro-split-calculator" },
             { title: "Ideal Weight", url: "/calculators/ideal-weight-calculator" },
         ],
-    },
-    {
-        title: "Search",
-        url: "#",
-        icon: Search,
-    },
-    {
-        title: "Settings",
-        url: "#",
-        icon: Settings,
     },
 ]
 
@@ -135,14 +124,13 @@ export function AppSidebar() {
                                     )}
                                 </SidebarMenuItem>
                             ))}
+                            <SidebarMenuItem>
+                                <SettingsDropdown />
+                            </SidebarMenuItem>
                         </SidebarMenu>
-
                     </SidebarGroupContent>
                 </SidebarGroup>
             </SidebarContent>
-            <SidebarFooter className="ml-auto">
-                <ModeToggle />
-            </SidebarFooter>
         </Sidebar>
     )
 }

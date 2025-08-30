@@ -17,16 +17,20 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { IdealWeightFormSchema } from "@/lib/validation/ideal-weight-schema";
 import { IdealWeightFormProps, IdealWeightFormValues } from "@/lib/types/ideal-weight-types";
 import { calculateIdealWeight } from "@/lib/calculations/ideal-weight";
+import { useUnits } from "@/hooks/use-units";
 
 
 export default function IdealWeightForm({ onCalculate }: IdealWeightFormProps) {
+  const units = useUnits(); // Llama al hook
+
   const form = useForm<IdealWeightFormValues>({
     resolver: zodResolver(IdealWeightFormSchema),
   });
 
   function onSubmit(values: IdealWeightFormValues) {
     try {
-      const results = calculateIdealWeight(values);
+      // Combina los valores del formulario con las unidades antes de calcular
+      const results = calculateIdealWeight({ ...values, units });
       onCalculate(results);
       toast.success("Calculation done!");
     } catch (error) {
@@ -59,23 +63,26 @@ export default function IdealWeightForm({ onCalculate }: IdealWeightFormProps) {
             </FormItem>
           )} />
 
-          {/* Height */}
-          <FormField control={form.control} name="height" render={({ field }) => (
-            <FormItem>
-              <FormLabel>Height</FormLabel>
-              <FormControl><Input type="number" {...field} /></FormControl>
-              <FormMessage />
-            </FormItem>
-          )} />
+          <div className="flex gap-4">
+            {/* Age */}
+            <FormField control={form.control} name="age" render={({ field }) => (
+              <FormItem>
+                <FormLabel>Age</FormLabel>
+                <FormControl><Input type="number" {...field} /></FormControl>
+                <FormMessage />
+              </FormItem>
+            )} />
 
-          {/* Age */}
-          <FormField control={form.control} name="age" render={({ field }) => (
-            <FormItem>
-              <FormLabel>Age</FormLabel>
-              <FormControl><Input type="number" {...field} /></FormControl>
-              <FormMessage />
-            </FormItem>
-          )} />
+            {/* Height */}
+            <FormField control={form.control} name="height" render={({ field }) => (
+              <FormItem>
+                <FormLabel>{units === 'metric' ? 'Height (cm)' : 'Height (in)'}</FormLabel>
+                <FormControl><Input type="number" {...field} /></FormControl>
+                <FormMessage />
+              </FormItem>
+            )} />
+
+          </div>
 
           {/* Body Frame */}
           <FormField control={form.control} name="bodyFrame" render={({ field }) => (

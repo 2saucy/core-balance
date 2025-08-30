@@ -1,3 +1,5 @@
+// ms-and-calories-form.tsx
+
 "use client"
 import { toast } from "sonner"
 import { SubmitHandler, useForm } from "react-hook-form"
@@ -23,64 +25,55 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { calculateBMR, calculateCalorieTarget, calculateTDEE } from "@/lib/calculations/ms-and-calories"
 import { MSAndCaloriesFormProps, MSAndCaloriesFormValues } from "@/lib/types/ms-and-calories-types"
 import { MSAndCaloriesFormSchema } from "@/lib/validation/ms-and-calories-schema"
+import { useUnits } from "@/hooks/use-units"
+
 
 export default function MSAndCaloriesForm({ onCalculate }: MSAndCaloriesFormProps) {
+    const units = useUnits(); // Llama al hook
     const form = useForm<MSAndCaloriesFormValues>({
         resolver: zodResolver(MSAndCaloriesFormSchema),
         defaultValues: {
-            units: "metric",
             gender: "male",
             age: undefined,
             height: undefined,
             weight: undefined,
             activity_level: "sedentary",
-            goal: "maintain"
+            goal: "maintain",
+            bodyfat_percentage: undefined,
+            diet_preference: undefined
         },
-    })
+    });
 
-    const onSubmit = (values: MSAndCaloriesFormValues) => {
+    const onSubmit: SubmitHandler<MSAndCaloriesFormValues> = (values) => {
         try {
-            const results = calculateBMR(values);
-            const tdee = calculateTDEE(results, values.activity_level);
+            const results = {
+                ...values,
+                units
+            };
+
+            const bmr = calculateBMR(results);
+            const tdee = calculateTDEE(bmr, values.activity_level);
             const calorieTarget = calculateCalorieTarget(tdee, values.goal);
 
+            // Agrega `formValues` al objeto para corregir el error de tipo.
             onCalculate({
-                bmr: results,
-                tdee: tdee,
-                calorieTarget: calorieTarget,
-                formValues: values
+                bmr,
+                tdee,
+                calorieTarget,
+                formValues: values,
             });
 
-            toast.success("Calculation done!");
+            toast.success("Calculations successful!");
         } catch (error) {
             console.error(error);
-            toast.error("Failed to calculate.");
+            toast.error("An error occurred during calculation.");
         }
-    }
+    };
 
     return (
         <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="flex flex-col gap-6 h-full">
                 <div className="space-y-6">
-                    {/* Units */}
-                    <FormField
-                        control={form.control}
-                        name="units"
-                        render={({ field }) => (
-                            <FormItem>
-                                <FormLabel>Units</FormLabel>
-                                <Select onValueChange={field.onChange} defaultValue={field.value}>
-                                    <FormControl><SelectTrigger><SelectValue /></SelectTrigger></FormControl>
-                                    <SelectContent>
-                                        <SelectItem value="metric">Metric (cm, kg)</SelectItem>
-                                        <SelectItem value="imperial">Imperial (in, lbs)</SelectItem>
-                                    </SelectContent>
-                                </Select>
-                                <FormMessage />
-                            </FormItem>
-                        )}
-                    />
-
                     {/* Gender */}
                     <FormField
                         control={form.control}
@@ -126,7 +119,7 @@ export default function MSAndCaloriesForm({ onCalculate }: MSAndCaloriesFormProp
                             name="height"
                             render={({ field }) => (
                                 <FormItem className="w-1/3">
-                                    <FormLabel>Height</FormLabel>
+                                    <FormLabel>{units === 'metric' ? 'Height (cm)' : 'Height (in)'}</FormLabel>
                                     <FormControl><Input type="number" step="0.01" {...field} onChange={e => field.onChange(e.target.value === "" ? undefined : Number(e.target.value))} /></FormControl>
                                     <FormMessage />
                                 </FormItem>
@@ -139,7 +132,7 @@ export default function MSAndCaloriesForm({ onCalculate }: MSAndCaloriesFormProp
                             name="weight"
                             render={({ field }) => (
                                 <FormItem className="w-1/3">
-                                    <FormLabel>Weight</FormLabel>
+                                    <FormLabel>{units === 'metric' ? 'Weight (kg)' : 'Weight (lbs)'}</FormLabel>
                                     <FormControl><Input type="number" step="0.01" {...field} onChange={e => field.onChange(e.target.value === "" ? undefined : Number(e.target.value))} /></FormControl>
                                     <FormMessage />
                                 </FormItem>
@@ -159,11 +152,12 @@ export default function MSAndCaloriesForm({ onCalculate }: MSAndCaloriesFormProp
                                         <SelectTrigger><SelectValue placeholder="Select your activity level" /></SelectTrigger>
                                     </FormControl>
                                     <SelectContent>
+                                        {/* Cambia los valores para que coincidan con el esquema */}
                                         <SelectItem value="sedentary">Sedentary (no exercise)</SelectItem>
-                                        <SelectItem value="lightly_active">Lightly Active (1-3 days a week)</SelectItem>
-                                        <SelectItem value="moderately_active">Moderately Active (3-5 days a week)</SelectItem>
-                                        <SelectItem value="very_active">Very Active (6-7 days a week)</SelectItem>
-                                        <SelectItem value="extra_active">Extra Active (twice a day)</SelectItem>
+                                        <SelectItem value="light">Lightly Active (1-3 days a week)</SelectItem>
+                                        <SelectItem value="moderate">Moderately Active (3-5 days a week)</SelectItem>
+                                        <SelectItem value="active">Very Active (6-7 days a week)</SelectItem>
+                                        <SelectItem value="very_active">Extra Active (twice a day)</SelectItem>
                                     </SelectContent>
                                 </Select>
                                 <FormMessage />

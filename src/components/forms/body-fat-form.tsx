@@ -6,20 +6,20 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { cn } from "@/lib/utils";
 import { BodyFatCalculatorFormProps, BodyFatFormValues } from "@/lib/types/body-fat-types";
 import { BodyFatSchema } from "@/lib/validation/body-fat-schema";
 import { calculateBodyFat } from "@/lib/calculations/body-fat";
+import { useUnits } from "@/hooks/use-units";
 
 
 export default function BodyFatCalculatorForm({ onCalculate }: BodyFatCalculatorFormProps) {
+  const units = useUnits();
 
   const form = useForm<BodyFatFormValues>({
     resolver: zodResolver(BodyFatSchema),
     defaultValues: {
-      units: "metric",
       gender: "male",
       height: undefined,
       weight: undefined,
@@ -31,36 +31,21 @@ export default function BodyFatCalculatorForm({ onCalculate }: BodyFatCalculator
 
   const gender = form.watch("gender");
 
-  const onSubmit = (values: BodyFatFormValues) => {
+  const onSubmit = (values: Omit<BodyFatFormValues, "units">) => {
     try {
-      const results = calculateBodyFat(values);
+      const results = calculateBodyFat({ ...values, units }); // Agrega las unidades a los valores
       onCalculate(results);
-      toast.success("Calculation done!");
+      toast.success("Body fat calculated and saved!");
     } catch (error) {
       console.error(error);
-      toast.error("Failed to calculate body fat.");
+      toast.error("An error occurred during calculation.");
     }
-  };
+  }
 
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="flex flex-col h-full">
         <div className="space-y-6">
-          {/* Units */}
-          <FormField control={form.control} name="units" render={({ field }) => (
-            <FormItem>
-              <FormLabel>Units</FormLabel>
-              <Select onValueChange={field.onChange} defaultValue={field.value}>
-                <FormControl><SelectTrigger><SelectValue /></SelectTrigger></FormControl>
-                <SelectContent>
-                  <SelectItem value="metric">Metric (cm, kg)</SelectItem>
-                  <SelectItem value="imperial">Imperial (in, lbs)</SelectItem>
-                </SelectContent>
-              </Select>
-              <FormMessage />
-            </FormItem>
-          )} />
-
           {/* Gender */}
           <FormField control={form.control} name="gender" render={({ field }) => (
             <FormItem>
@@ -85,7 +70,7 @@ export default function BodyFatCalculatorForm({ onCalculate }: BodyFatCalculator
             {/* Height */}
             <FormField control={form.control} name="height" render={({ field }) => (
               <FormItem className="w-1/2">
-                <FormLabel>Height</FormLabel>
+                <FormLabel>{units === 'metric' ? 'Height (cm)' : 'Height (in)'}</FormLabel>
                 <FormControl><Input type="number" step="0.01" {...field} onChange={e => field.onChange(e.target.value === "" ? undefined : Number(e.target.value))} /></FormControl>
                 <FormMessage />
               </FormItem>
@@ -94,7 +79,7 @@ export default function BodyFatCalculatorForm({ onCalculate }: BodyFatCalculator
             {/* Weight */}
             <FormField control={form.control} name="weight" render={({ field }) => (
               <FormItem className="w-1/2">
-                <FormLabel>Weight</FormLabel>
+                <FormLabel>{units === 'metric' ? 'Weight (kg)' : 'Weight (lbs)'}</FormLabel>
                 <FormControl><Input type="number" step="0.01" {...field} onChange={e => field.onChange(e.target.value === "" ? undefined : Number(e.target.value))} /></FormControl>
                 <FormMessage />
               </FormItem>
@@ -105,7 +90,7 @@ export default function BodyFatCalculatorForm({ onCalculate }: BodyFatCalculator
             {/* Neck */}
             <FormField control={form.control} name="neck" render={({ field }) => (
               <FormItem className="w-1/2">
-                <FormLabel>Neck</FormLabel>
+                <FormLabel>{units === 'metric' ? 'Neck (cm)' : 'Neck (in)'}</FormLabel>
                 <FormControl><Input type="number" step="0.01" {...field} onChange={e => field.onChange(e.target.value === "" ? undefined : Number(e.target.value))} /></FormControl>
                 <FormMessage />
               </FormItem>
@@ -113,7 +98,7 @@ export default function BodyFatCalculatorForm({ onCalculate }: BodyFatCalculator
             {/* Waist */}
             <FormField control={form.control} name="waist" render={({ field }) => (
               <FormItem className="w-1/2">
-                <FormLabel>Waist</FormLabel>
+                <FormLabel>{units === 'metric' ? 'Waist (cm)' : 'Waist (in)'}</FormLabel>
                 <FormControl><Input type="number" step="0.01" {...field} onChange={e => field.onChange(e.target.value === "" ? undefined : Number(e.target.value))} /></FormControl>
                 <FormMessage />
               </FormItem>
@@ -123,7 +108,7 @@ export default function BodyFatCalculatorForm({ onCalculate }: BodyFatCalculator
           {/* Hips */}
           <FormField control={form.control} name="hips" render={({ field }) => (
             <FormItem className={cn({ "hidden": gender === "male" })}>
-              <FormLabel>Hips</FormLabel>
+              <FormLabel>{units === 'metric' ? 'Hips (cm)' : 'Hips (in)'}</FormLabel>
               <FormControl><Input type="number" step="0.01" {...field} onChange={e => field.onChange(e.target.value === "" ? undefined : Number(e.target.value))} disabled={gender === "male"} /></FormControl>
               <FormMessage />
             </FormItem>

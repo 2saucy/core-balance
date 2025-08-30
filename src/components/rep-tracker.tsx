@@ -1,3 +1,4 @@
+// src/components/rep-tracker.tsx
 "use client";
 
 import * as React from "react";
@@ -5,97 +6,74 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
-import { CirclePlus, Save, Trash, History, Dumbbell, TrendingUp, Calendar, SquareStack } from "lucide-react";
-import { toast } from "sonner";
+import {
+  CirclePlus,
+  Save,
+  Trash,
+  History,
+  TrendingUp,
+  Calendar,
+  SquareStack,
+  Play,
+  RefreshCw,
+  X,
+  CheckCircle,
+  Pause,
+} from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Dialog, DialogClose, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { WorkoutTimer } from "@/components/workout-timer";
+import { Badge } from "@/components/ui/badge";
+import { useRepTracker } from "@/hooks/use-rep.tracker";
 
 interface RepTrackerProps {
   exerciseName: string;
   category?: string;
 }
 
-interface SetLog {
-  reps: number;
-  weight: number;
-}
-
-interface WorkoutLog {
-  date: string;
-  sets: SetLog[];
-  volume: number;
-  oneRepMax: number;
-}
-
-const getLogsKey = (exerciseName: string) => `rep-tracker-${exerciseName.replace(/\s/g, "-").toLowerCase()}`;
-
-const calculateOneRepMax = (weight: number, reps: number): number => {
-  if (weight <= 0 || reps <= 0) return 0;
-  return Math.round(weight * (1 + reps / 30));
-};
-
 export default function RepTracker({ exerciseName, category }: RepTrackerProps) {
-  const [logs, setLogs] = React.useState<WorkoutLog[]>([]);
-  const [currentSets, setCurrentSets] = React.useState<SetLog[]>([]);
-  const [reps, setReps] = React.useState(0);
-  const [weight, setWeight] = React.useState(0);
-  const [isAddSetOpen, setIsAddSetOpen] = React.useState(false);
-  const [isHistoryOpen, setIsHistoryOpen] = React.useState(false);
+  const {
+    logs,
+    currentSets,
+    reps,
+    setReps,
+    weight,
+    setWeight,
+    isWorkoutDialogOpen,
+    setIsWorkoutDialogOpen,
+    isHistoryOpen,
+    setIsHistoryOpen,
+    workoutPhase,
+    timerRef,
+    timerRunning,
+    updateSetDuration,
+    updateRestTime,
+    handleStartWorkout,
+    handleToggleTimer,
+    handleAddSet,
+    handleFinishRest,
+    handleFinishExercise,
+    handleSaveWorkout,
+    handleDeleteLog,
+    loadLastWeight,
+  } = useRepTracker(exerciseName);
 
-  React.useEffect(() => {
-    const savedLogs = localStorage.getItem(getLogsKey(exerciseName));
-    if (savedLogs) {
-      setLogs(JSON.parse(savedLogs));
-    }
-  }, [exerciseName]);
-
-  const handleAddSet = () => {
-    if (reps <= 0 || weight <= 0) {
-      toast.error("Please enter positive values for reps and weight.");
-      return;
-    }
-    setCurrentSets([...currentSets, { reps, weight }]);
-    setReps(0);
-    setWeight(0);
-  };
-
-  const handleSaveWorkout = () => {
-    if (currentSets.length === 0) {
-      toast.error("Please add at least one set before saving.");
-      return;
-    }
-
-    const totalVolume = currentSets.reduce((sum, set) => sum + (set.reps * set.weight), 0);
-    const maxOneRepMax = Math.max(...currentSets.map(set => calculateOneRepMax(set.weight, set.reps)));
-
-    const newLog: WorkoutLog = {
-      date: new Date().toISOString().split('T')[0],
-      sets: currentSets,
-      volume: totalVolume,
-      oneRepMax: maxOneRepMax,
-    };
-
-    const updatedLogs = [newLog, ...logs];
-    setLogs(updatedLogs);
-    localStorage.setItem(getLogsKey(exerciseName), JSON.stringify(updatedLogs));
-
-    setCurrentSets([]);
-    setIsAddSetOpen(false);
-    toast.success("Workout log saved!");
-  };
-
-  const handleDeleteLog = (logIndex: number) => {
-    const updatedLogs = logs.filter((_, i) => i !== logIndex);
-    setLogs(updatedLogs);
-    localStorage.setItem(getLogsKey(exerciseName), JSON.stringify(updatedLogs));
-    toast.info("Log deleted.");
-  };
-
-  const maxOneRepMax = logs.length > 0
-    ? Math.max(...logs.map(log => log.oneRepMax))
-    : null;
-
+  const maxOneRepMax = logs.length > 0 ? Math.max(...logs.map(log => log.oneRepMax)) : null;
   const lastLog = logs.length > 0 ? logs[0] : null;
+
+  const formatDuration = (timeInMs: number) => {
+    const totalSeconds = Math.floor(timeInMs / 1000);
+    const minutes = Math.floor(totalSeconds / 60);
+    const seconds = totalSeconds % 60;
+    return `${minutes.toString().padStart(2, "0")}:${seconds.toString().padStart(2, "0")}`;
+  };
+
+  const formatSetDuration = (durationInMs: number) => {
+    const totalSeconds = Math.floor(durationInMs / 1000);
+    const minutes = Math.floor(totalSeconds / 60);
+    const seconds = totalSeconds % 60;
+    return `(${minutes}m ${seconds}s)`;
+  };
 
   return (
     <Card className="p-4">
@@ -122,58 +100,98 @@ export default function RepTracker({ exerciseName, category }: RepTrackerProps) 
       </CardContent>
       <CardFooter className="p-0 mt-auto">
         <div className="grid grid-cols-2 gap-4 w-full">
-          <Dialog open={isAddSetOpen} onOpenChange={setIsAddSetOpen}>
+          <Dialog open={isWorkoutDialogOpen} onOpenChange={setIsWorkoutDialogOpen}>
             <DialogTrigger asChild>
-              <Button className="h-24 flex-col justify-center gap-2">
-                <Dumbbell className="h-6 w-6" />
-                <span className="text-sm">Add Set</span>
+              <Button onClick={handleStartWorkout} className="h-24 flex-col justify-center gap-2">
+                <Play className="h-6 w-6" />
+                <span className="text-sm">Start Workout</span>
               </Button>
             </DialogTrigger>
             <DialogContent>
               <DialogHeader>
-                <DialogTitle>Add Workout Set</DialogTitle>
+                <DialogTitle>Workout Session</DialogTitle>
               </DialogHeader>
               <div className="flex flex-col gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="reps">Reps</Label>
-                  <Input
-                    id="reps"
-                    type="number"
-                    value={reps}
-                    onChange={(e) => setReps(Number(e.target.value))}
-                  />
+                {workoutPhase !== 'finished' && (
+                  <div className="flex justify-center items-center gap-2 mb-2">
+                    <Badge variant={workoutPhase === 'training' ? 'default' : 'secondary'}>Training</Badge>
+                    <Badge variant={workoutPhase === 'resting' ? 'default' : 'secondary'}>Resting</Badge>
+                  </div>
+                )}
+                {workoutPhase === 'training' && (
+                  <>
+                    <div className="my-4 space-y-8">
+                      <WorkoutTimer onTimeUpdate={updateSetDuration} ref={timerRef} />
+                      <div className="flex justify-center">
+                        <Button onClick={handleToggleTimer} className="flex items-center justify-center rounded-full aspect-square h-16">
+                          {timerRunning ? <Pause /> : <Play />}
+                        </Button>
+                      </div>
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="reps">Reps</Label>
+                      <Input id="reps" type="number" value={reps} onChange={(e) => setReps(Number(e.target.value))} />
+                    </div>
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between">
+                        <Label htmlFor="weight">Weight (kg)</Label>
+                        <Button onClick={loadLastWeight} variant="ghost" size="sm" className="h-auto p-1">
+                          <RefreshCw className="w-3 h-3 mr-1" />
+                          <span className="text-xs">Load Last</span>
+                        </Button>
+                      </div>
+                      <Input id="weight" type="number" value={weight} onChange={(e) => setWeight(Number(e.target.value))} />
+                    </div>
+                  </>
+                )}
+                <div className="mt-8">
+                  {workoutPhase === 'training' && (
+                    <Button onClick={handleAddSet} className="w-full">
+                      <CirclePlus className="mr-2 h-4 w-4" /> Add Set to Workout
+                    </Button>
+                  )}
+                  {workoutPhase === 'resting' && (
+                    <>
+                      <WorkoutTimer onTimeUpdate={updateRestTime} ref={timerRef} />
+                      <div className="flex gap-2 mt-12">
+                        <Button onClick={handleFinishRest} className="flex-1">
+                          <CheckCircle className="mr-2 h-4 w-4" /> Finalizar Descanso
+                        </Button>
+                        <Button onClick={handleToggleTimer} variant="outline" className="flex-1">
+                          {timerRunning ? "Pausar" : "Reanudar"}
+                        </Button>
+                      </div>
+                    </>
+                  )}
+                  {workoutPhase !== 'pre-workout' && workoutPhase !== 'finished' && (
+                    <Button onClick={handleFinishExercise} variant="secondary" className="w-full mt-4">
+                      <X className="mr-2 h-4 w-4" /> Finalizar Ejercicio
+                    </Button>
+                  )}
                 </div>
-                <div className="space-y-2">
-                  <Label htmlFor="weight">Weight (kg)</Label>
-                  <Input
-                    id="weight"
-                    type="number"
-                    value={weight}
-                    onChange={(e) => setWeight(Number(e.target.value))}
-                  />
-                </div>
-                <Button onClick={handleAddSet} className="w-full">
-                  <CirclePlus className="mr-2 h-4 w-4" /> Add Set to Workout
-                </Button>
-                {currentSets.length > 0 && (
-                  <div className="mt-4">
-                    <h4 className="font-semibold text-base mb-2">Current Workout</h4>
-                    <ul className="list-disc list-inside space-y-1 text-sm text-gray-700 dark:text-gray-300">
-                      {currentSets.map((set, index) => (
-                        <li key={index}>
-                          Set {index + 1}: {set.reps} reps @ {set.weight} kg
-                        </li>
-                      ))}
-                    </ul>
+                {workoutPhase === 'finished' && (
+                  <>
+                    <div className="mt-4">
+                      <h4 className="font-semibold text-base mb-2">Current Workout</h4>
+                      <ul className="space-y-1 text-sm text-gray-700 dark:text-gray-300">
+                        {currentSets.map((set, index) => (
+                          <li key={index} className="flex justify-between">
+                            <span>Set {index + 1}: {set.reps} reps @ {set.weight} kg {formatSetDuration(set.durationInMs)}</span>
+                            {set.restTimeInMs !== undefined && (
+                              <span className="text-muted-foreground">Resting: ({formatSetDuration(set.restTimeInMs)})</span>
+                            )}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
                     <Button onClick={handleSaveWorkout} className="mt-4 w-full">
                       <Save className="mr-2 h-4 w-4" /> Save Workout
                     </Button>
-                  </div>
+                  </>
                 )}
               </div>
             </DialogContent>
           </Dialog>
-
           <Dialog open={isHistoryOpen} onOpenChange={setIsHistoryOpen}>
             <DialogTrigger asChild>
               <Button variant="outline" className="h-24 flex-col justify-center gap-2">
@@ -203,6 +221,9 @@ export default function RepTracker({ exerciseName, category }: RepTrackerProps) 
                             </li>
                           ))}
                         </ul>
+                        <div className="mt-2 text-xs text-muted-foreground">
+                          Total Duration: {formatDuration(log.durationInMs)}
+                        </div>
                       </div>
                     ))}
                   </div>

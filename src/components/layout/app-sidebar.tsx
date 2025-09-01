@@ -56,9 +56,8 @@ const items = [
         icon: Vegan,
         children: [
             { title: "Meal Plans", url: "/diet/meal-plans" },
-            { title: "Recipes", url: "/calculators/bodyfat" },
-            { title: "Grocery List", url: "/calculators/calories" },
-            { title: "Calorie Tracker", url: "/calculators/macro-split" },
+            { title: "Grocery List", url: "/calculators/grocery-list" },
+            { title: "Recipes", url: "/calculators/Recipes" },
         ],
     },
     {

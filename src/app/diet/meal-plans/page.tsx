@@ -1,148 +1,147 @@
 // app/meal-plans/page.tsx
 "use client";
 
-import { MealPlanForm } from "@/components/forms/meal-plan-form";
+import MealPlansForm from "@/components/forms/meal-plans-form";
 import { LoadingOverlay } from "@/components/loading-overlay";
 import { MealPlanDisplay } from "@/components/meal-plan-display";
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
+import { z } from "zod";
+import { MealPlansFormSchema } from "@/lib/validation/meal-plans-schema";
 
 // Array of loading messages
 const loadingMessages = [
-  "Looking for dishes...",
-  "Calculating macros...",
-  "Generating recipes...",
-  "Putting it all together...",
+  "Buscando platos...",
+  "Calculando macros...",
+  "Generando recetas...",
+  "Armando tu plan...",
 ];
 
+interface MealItem {
+  food: string;
+  calories: number;
+  protein: number;
+  carbs: number;
+  fats: number;
+}
+
+interface Meal {
+  mealName: string;
+  items: MealItem[];
+}
+
+interface DayPlan {
+  day: string;
+  meals: Meal[];
+}
+
 export default function MealPlansPage() {
-  const [mealPlan, setMealPlan] = useState<any | null>(null);
-  const [calories, setCalories] = useState<number | undefined>(2000);
+  const [mealPlan, setMealPlan] = useState<DayPlan[] | null>(null);
   const [loading, setLoading] = useState(false);
   const [currentLoadingMessage, setCurrentLoadingMessage] = useState(loadingMessages[0]);
+  const [formValues, setFormValues] = useState<z.infer<typeof MealPlansFormSchema> | null>(null);
+  const [regeneratingMeal, setRegeneratingMeal] = useState<string | null>(null);
 
-  // Form state
-  const [dietType, setDietType] = useState("");
-  const [preferredFoods, setPreferredFoods] = useState("");
-  const [excludedFoods, setExcludedFoods] = useState("");
-  const [protein, setProtein] = useState<number | undefined>();
-  const [carbs, setCarbs] = useState<number | undefined>();
-  const [fats, setFats] = useState<number | undefined>();
-  const [cost, setCost] = useState(""); // New state for cost
-
-  // Loading message interval
   useEffect(() => {
+    let interval: NodeJS.Timeout | undefined;
     if (loading) {
-      const interval = setInterval(() => {
-        setCurrentLoadingMessage((prevMessage) => {
+      interval = setInterval(() => {
+        setCurrentLoadingMessage(prevMessage => {
           const currentIndex = loadingMessages.indexOf(prevMessage);
           const nextIndex = (currentIndex + 1) % loadingMessages.length;
           return loadingMessages[nextIndex];
         });
       }, 3000);
-      return () => clearInterval(interval);
+    } else {
+      clearInterval(interval);
     }
+    return () => clearInterval(interval);
   }, [loading]);
 
-  const handleGeneratePlan = async () => {
+  const fetchMealPlan = async (data: z.infer<typeof MealPlansFormSchema>, lockedItems: MealItem[] = [], mealToRegenerate?: { dayIndex: number, mealIndex: number, currentMeal: Meal }) => {
     setLoading(true);
-    setMealPlan(null);
-    setCurrentLoadingMessage(loadingMessages[0]);
+    setFormValues(data);
+    
     try {
+      const bodyData: any = { ...data, locked_items: lockedItems };
+      if (mealToRegenerate) {
+        bodyData.meal_to_regenerate = {
+          day_index: mealToRegenerate.dayIndex,
+          meal_index: mealToRegenerate.mealIndex,
+          current_meal: mealToRegenerate.currentMeal
+        };
+        bodyData.existing_meal_plan = mealPlan;
+      }
+
       const response = await fetch("/api/generate-meal-plan", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({
-          calories,
-          gender: "male",
-          age: 30,
-          goal: "maintain",
-          dietType,
-          preferredFoods,
-          excludedFoods,
-          protein,
-          carbs,
-          fats,
-          cost, // Use the new cost state
-        }),
+        body: JSON.stringify(bodyData),
       });
 
       if (!response.ok) {
-        throw new Error("Failed to fetch from API.");
+        throw new Error("Failed to fetch meal plan.");
       }
 
-      const data = await response.json();
-      setMealPlan(data.mealPlan);
-      toast.success("Meal plan generated successfully!");
-    } catch (error) {
+      const result = await response.json();
+      setMealPlan(result.mealPlan);
+      toast.success("¡Plan de comidas generado exitosamente!");
+    } catch (error: any) {
       console.error(error);
-      toast.error("An error occurred. Please try again.");
+      toast.error(error.message || "Fallo al generar el plan de comidas.");
+      setMealPlan(null);
     } finally {
       setLoading(false);
+      setRegeneratingMeal(null);
+    }
+  };
+
+  const handleGeneratePlan = (data: z.infer<typeof MealPlansFormSchema>) => {
+    fetchMealPlan(data);
+  };
+
+  const handleRegenerate = (lockedItems: MealItem[]) => {
+    if (formValues) {
+      fetchMealPlan(formValues, lockedItems);
+    }
+  };
+  
+  const handleRegenerateMeal = (dayIndex: number, mealIndex: number, currentMeal: Meal) => {
+    const mealId = `${mealPlan?.[dayIndex]?.day}-${currentMeal.mealName}-${mealIndex}`;
+    setRegeneratingMeal(mealId);
+    if (formValues) {
+      fetchMealPlan(formValues, [], { dayIndex, mealIndex, currentMeal });
     }
   };
 
   const handleSaveRoutine = () => {
-    toast.info("Meal plan saved!");
+    toast.success("¡Rutina guardada exitosamente!");
   };
-
-  const calculateTotals = () => {
-    if (!mealPlan) return { totalCalories: 0, totalProtein: 0, totalCarbs: 0, totalFats: 0 };
-    return mealPlan.reduce((totals: any, meal: any) => {
-      meal.items.forEach((item: any) => {
-        totals.totalCalories += item.calories || 0;
-        totals.totalProtein += item.protein || 0;
-        totals.totalCarbs += item.carbs || 0;
-        totals.totalFats += item.fats || 0;
-      });
-      return totals;
-    }, { totalCalories: 0, totalProtein: 0, totalCarbs: 0, totalFats: 0 });
-  };
-
-  const totals = calculateTotals();
 
   return (
     <div className="flex flex-col justify-center py-12 px-4 md:px-12 lg:px-[15%]">
       {loading && <LoadingOverlay message={currentLoadingMessage} />}
 
       <h2 className="text-4xl font-black whitespace-nowrap mb-8">
-        Daily Meal Planner
+        Planes de Comidas
       </h2>
 
-      <MealPlanForm
-        calories={calories}
-        setCalories={setCalories}
-        dietType={dietType}
-        setDietType={setDietType}
-        preferredFoods={preferredFoods}
-        setPreferredFoods={setPreferredFoods}
-        excludedFoods={excludedFoods}
-        setExcludedFoods={setExcludedFoods}
-        protein={protein}
-        setProtein={setProtein}
-        carbs={carbs}
-        setCarbs={setCarbs}
-        fats={fats}
-        setFats={setFats}
-        cost={cost}
-        setCost={setCost}
-        handleGeneratePlan={handleGeneratePlan}
-        loading={loading}
-      />
+      <MealPlansForm onGeneratePlan={handleGeneratePlan} />
 
-      {mealPlan ? (
+      {mealPlan && mealPlan.length > 0 && formValues && (
         <MealPlanDisplay
           mealPlan={mealPlan}
-          totals={totals}
           handleSaveRoutine={handleSaveRoutine}
           loading={loading}
+          handleRegenerate={handleRegenerate}
+          handleRegenerateMeal={handleRegenerateMeal}
+          regeneratingMeal={regeneratingMeal}
+          preferences={formValues.prefered_foods || "No especificado"}
+          dietType={formValues.type_of_diet || "No especificado"}
+          totalCalories={formValues.calorie_target}
         />
-      ) : (
-        <div className="text-center text-muted-foreground mt-10">
-          {loading ? "Generating your personalized meal plan..." : "Enter your calorie goal and click 'Generate with AI'."}
-        </div>
       )}
     </div>
   );

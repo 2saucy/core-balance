@@ -36,6 +36,7 @@ import {
 } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { MealPlansFormSchema } from "@/lib/validation/meal-plans-schema";
+import { MealPlansFormValues } from "@/lib/types/meal-types";
 
 const dietOptions = [
     { label: "Vegan", value: "vegan" },
@@ -60,7 +61,7 @@ export default function MealPlansForm({
         values: z.infer<typeof MealPlansFormSchema>
     ) => void;
 }) {
-    const form = useForm<z.infer<typeof MealPlansFormSchema>>({
+    const form = useForm<MealPlansFormValues>({
         resolver: zodResolver(MealPlansFormSchema),
         defaultValues: {
             // All optional fields must have a default value
@@ -70,9 +71,9 @@ export default function MealPlansForm({
             excluded_foods: "",
             allergic_and_intolerances: "",
             daily_cost: "",
-            protein: "", 
-            carbs: "",
-            fats: "",
+            protein: undefined, 
+            carbs: undefined,
+            fats: undefined,
         },
     });
 

@@ -1,6 +1,5 @@
 // app/meal-plans/page.tsx
 "use client";
-
 import MealPlansForm from "@/components/forms/meal-plans-form";
 import { LoadingOverlay } from "@/components/loading-overlay";
 import { MealPlanDisplay } from "@/components/meal-plan-display";
@@ -8,6 +7,7 @@ import { useState, useEffect } from "react";
 import { toast } from "sonner";
 import { z } from "zod";
 import { MealPlansFormSchema } from "@/lib/validation/meal-plans-schema";
+import { DayPlan, MealItem, Meal } from "@/lib/types/meal-types";
 
 // Array of loading messages
 const loadingMessages = [
@@ -16,24 +16,6 @@ const loadingMessages = [
   "Generando recetas...",
   "Armando tu plan...",
 ];
-
-interface MealItem {
-  food: string;
-  calories: number;
-  protein: number;
-  carbs: number;
-  fats: number;
-}
-
-interface Meal {
-  mealName: string;
-  items: MealItem[];
-}
-
-interface DayPlan {
-  day: string;
-  meals: Meal[];
-}
 
 export default function MealPlansPage() {
   const [mealPlan, setMealPlan] = useState<DayPlan[] | null>(null);

@@ -1,4 +1,4 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { NutritionalTotals } from "@/lib/types/meal-types";
 import { BarChart3 } from "lucide-react";
@@ -13,26 +13,25 @@ export function NutritionSummary({ dayName, totals }: NutritionSummaryProps) {
     <Card>
       <CardHeader>
         <CardTitle className="text-lg flex items-center gap-2">
-          <BarChart3 className="h-4 w-4" />
-          {dayName} - Totales
+          <BarChart3 className="h-4 w-4 text-muted-foreground" />
+          {dayName} Summary
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-3">
         <div className="flex justify-between items-center">
-          <span className="text-sm font-medium">Calorías</span>
+          <span className="text-sm font-medium">Calories</span>
           <span className="font-bold">{Math.round(totals.totalCalories)} kcal</span>
         </div>
-        <Separator />
         <div className="flex justify-between items-center">
-          <span className="text-sm font-medium">Proteína</span>
+          <span className="text-sm font-medium">Proteins</span>
           <span className="font-bold">{totals.totalProtein.toFixed(1)}g</span>
         </div>
         <div className="flex justify-between items-center">
-          <span className="text-sm font-medium">Carbohidratos</span>
+          <span className="text-sm font-medium">Carbs</span>
           <span className="font-bold">{totals.totalCarbs.toFixed(1)}g</span>
         </div>
         <div className="flex justify-between items-center">
-          <span className="text-sm font-medium">Grasas</span>
+          <span className="text-sm font-medium">Fats</span>
           <span className="font-bold">{totals.totalFats.toFixed(1)}g</span>
         </div>
       </CardContent>

@@ -93,7 +93,7 @@ interface FoodItemCardProps {
 function FoodItemCard({ item, isLocked, onToggleLock }: FoodItemCardProps) {
   return (
     <Card className="p-3">
-      <div className="flex items-center justify-between mb-2">
+      <div className="flex items-center justify-between ">
         <h4 className="font-medium">{item.food}</h4>
         <Button variant="ghost" size="sm" onClick={onToggleLock}>
           {isLocked ? (
@@ -104,10 +104,10 @@ function FoodItemCard({ item, isLocked, onToggleLock }: FoodItemCardProps) {
         </Button>
       </div>
       <div className="flex gap-2 flex-wrap">
-        <Badge variant="outline">{item.calories} kcal</Badge>
-        <Badge variant="outline" className="text-red-600">{item.protein}g P</Badge>
-        <Badge variant="outline" className="text-blue-600">{item.carbs}g C</Badge>
-        <Badge variant="outline" className="text-green-600">{item.fats}g G</Badge>
+        <Badge variant="outline">{item.calories} kcal Calories</Badge>
+        <Badge variant="outline" className="text-red-600">{item.protein}g Protein</Badge>
+        <Badge variant="outline" className="text-blue-600">{item.carbs}g Carbs</Badge>
+        <Badge variant="outline" className="text-green-600">{item.fats}g Fats</Badge>
       </div>
     </Card>
   );

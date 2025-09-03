@@ -45,27 +45,27 @@ export function ActionButtons({
         <DialogTrigger asChild>
           <Button variant="outline" className="w-full">
             <NotepadText className="mr-2 h-4 w-4" />
-            Guardar Plan
+            Save Plan
           </Button>
         </DialogTrigger>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Guardar Plan de Comidas</DialogTitle>
+            <DialogTitle>Save Meal Plan</DialogTitle>
             <DialogDescription>
-              Dale un nombre a tu plan para guardarlo
+              Enter a name for your meal plan to save it for future reference.
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
             <Input
-              placeholder="Ej: Mi plan de volumen"
+              placeholder="Example: Low Carb Week"
               value={saveName}
               onChange={(e) => setSaveName(e.target.value)}
             />
             <div className="flex gap-2 justify-end">
               <Button variant="outline" onClick={() => setSaveDialogOpen(false)}>
-                Cancelar
+                Cancel
               </Button>
-              <Button onClick={handleSave}>Guardar</Button>
+              <Button onClick={handleSave}>Save</Button>
             </div>
           </div>
         </DialogContent>
@@ -76,28 +76,28 @@ export function ActionButtons({
         <DialogTrigger asChild>
           <Button className="w-full">
             <Download className="mr-2 h-4 w-4" />
-            Lista de Compras
+            Shopping List
           </Button>
         </DialogTrigger>
         <DialogContent className="max-w-md">
           <DialogHeader>
-            <DialogTitle>Lista de Compras</DialogTitle>
+            <DialogTitle>Shopping List</DialogTitle>
           </DialogHeader>
           <div className="relative">
             <ScrollArea className="h-[300px]">
               <div className="space-y-4">
                 <div className="p-3 bg-muted rounded-md text-sm">
-                  <p><strong>Fecha:</strong> {planInfo.date}</p>
+                  <p><strong>Date:</strong> {planInfo.date}</p>
                   {planInfo.dietType && (
-                    <p><strong>Dieta:</strong> {planInfo.dietType}</p>
+                    <p><strong>Diet:</strong> {planInfo.dietType}</p>
                   )}
                   {planInfo.calorieTarget && (
-                    <p><strong>Calorías:</strong> {planInfo.calorieTarget} kcal</p>
+                    <p><strong>Calories:</strong> {planInfo.calorieTarget} kcal</p>
                   )}
                 </div>
                 <div>
                   <h4 className="font-semibold mb-2">
-                    Ingredientes ({shoppingList.length})
+                    Ingredients ({shoppingList.length})
                   </h4>
                   <ul className="space-y-1">
                     {shoppingList.map((item, i) => (
@@ -129,17 +129,17 @@ export function ActionButtons({
         className="w-full"
       >
         <RefreshCcw className="mr-2 h-4 w-4" />
-        Regenerar con Bloqueados
+        Regenerate with Locked
       </Button>
 
       {lockedItemsCount > 0 && (
         <Button
-          variant="ghost"
+          variant="secondary"
           onClick={onClearLocked}
-          className="w-full text-muted-foreground"
+          className="w-full cursor-pointer"
         >
           <Trash2 className="mr-2 h-4 w-4" />
-          Limpiar Bloqueados ({lockedItemsCount})
+          Clean Lockeds ({lockedItemsCount})
         </Button>
       )}
     </div>

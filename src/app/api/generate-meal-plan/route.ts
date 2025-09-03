@@ -2,135 +2,234 @@
 import { NextResponse } from "next/server";
 import { GoogleGenerativeAI } from "@google/generative-ai";
 
-const genAI = new GoogleGenerativeAI(process.env.GOOGLE_API_KEY as string);
+if (!process.env.GOOGLE_API_KEY) {
+  throw new Error('GOOGLE_API_KEY is required');
+}
+
+const genAI = new GoogleGenerativeAI(process.env.GOOGLE_API_KEY);
+
+interface MealItem {
+  food: string;
+  calories: number;
+  protein: number;
+  carbs: number;
+  fats: number;
+}
+
+interface Meal {
+  mealName: string;
+  items: MealItem[];
+}
+
+interface RegenerationRequest {
+  day_index: number;
+  meal_index: number;
+  current_meal: Meal;
+}
+
+interface RequestBody {
+  calorie_target: number;
+  type_of_diet?: string;
+  plan_duration?: string;
+  meals_per_day: number;
+  prefered_foods?: string;
+  excluded_foods?: string;
+  protein?: number;
+  carbs?: number;
+  fats?: number;
+  daily_cost?: string;
+  allergic_and_intolerances?: string;
+  locked_items?: MealItem[];
+  meal_to_regenerate?: RegenerationRequest;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  existing_meal_plan?: any[];
+}
 
 export async function POST(request: Request) {
   try {
-    const { 
-      calorie_target, type_of_diet, plan_duration, meals_per_day, prefered_foods, 
-      excluded_foods, protein, carbs, fats, daily_cost, allergic_and_intolerances, 
-      locked_items, meal_to_regenerate, existing_meal_plan 
-    } = await request.json();
-
-    if (!calorie_target) {
+    const body: RequestBody = await request.json();
+    
+    // Validate required fields
+    if (!body.calorie_target) {
       return NextResponse.json({ error: "Calorie target is required" }, { status: 400 });
     }
-
-    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
-
-    let prompt = "";
-    if (meal_to_regenerate && existing_meal_plan) {
-      // Logic for regenerating a single meal
-      const { current_meal } = meal_to_regenerate;
-      const mealName = current_meal.mealName;
-      const mealCalories = current_meal.items.reduce((sum: number, item: { calories: number }) => sum + item.calories, 0);
-      const mealProtein = current_meal.items.reduce((sum: number, item: { protein: number }) => sum + item.protein, 0);
-      const mealCarbs = current_meal.items.reduce((sum: number, item: { carbs: number }) => sum + item.carbs, 0);
-      const mealFats = current_meal.items.reduce((sum: number, item: { fats: number }) => sum + item.fats, 0);
-
-      prompt = `
-          Regenerate only the following meal for an existing meal plan. The new meal should be similar in nutritional values and respect the user's preferences and exclusions.
-
-          **Existing Meal Plan (for context):**
-          ${JSON.stringify(existing_meal_plan)}
-          
-          **Meal to regenerate:**
-          - Meal Name: ${mealName}
-          - Target Calories: ${mealCalories} kcal
-          - Target Protein: ${mealProtein}g
-          - Target Carbs: ${mealCarbs}g
-          - Target Fats: ${mealFats}g
-          
-          **User Details:**
-          - Diet Type: ${type_of_diet || "not specified"}
-          - Preferred Foods: ${prefered_foods || "none"}
-          - Excluded Foods: ${excluded_foods || "none"}
-          - Allergies and intolerances: ${allergic_and_intolerances || "none"}
-          
-          **STRICT REQUIREMENTS:**
-          1. The new meal must have an identical meal name: "${mealName}".
-          2. The nutritional values (calories, protein, carbs, fats) of the new meal must be within ±10% of the target values.
-          3. The response must be a valid JSON object with the following structure, containing **only** the regenerated meal object. Do not add any other text.
-
-          {
-            "mealName": "${mealName}",
-            "items": [
-              { "food": "New Food 1", "calories": 250, "protein": 15, "carbs": 2, "fats": 20 }
-            ]
-          }
-      `;
-    } else {
-      // Logic for generating a complete plan
-      prompt = `
-          Generate a **complete and detailed** ${plan_duration}-day meal plan for a user with the following details:
-          - Daily calorie target: ${calorie_target} kcal
-          - Diet type: ${type_of_diet || "not specified"}
-          - Preferred foods to include: ${prefered_foods || "none"}
-          - Foods to exclude: ${excluded_foods || "none"}
-          - Macronutrient goals (grams): Protein ${protein || "not specified"}, Carbs ${carbs || "not specified"}, Fats ${fats || "not specified"}
-          - Daily cost range (USD): ${daily_cost || "not specified"}
-          - Allergies and intolerances: ${allergic_and_intolerances || "none"}
-          - Number of meals per day: ${meals_per_day || "not specified"}
-          
-          **LOCKED FOODS YOU MUST KEEP EXACTLY AS THEY ARE:**
-          ${locked_items && locked_items.length > 0 ? JSON.stringify(locked_items) : "None"}
-
-          STRICT REQUIREMENTS:
-          1. The **total daily calories must not deviate more than ±5% (or ±100 kcal, whichever is smaller)** from the target of ${calorie_target} kcal.  
-          2. Macronutrients must closely match the specified goals (if provided). Distribute them across meals realistically.  
-          3. Foods excluded and allergies must never appear in the plan.  
-          4. Preferred foods should appear regularly (at least several times per week).  
-          5. Costs must stay within the given daily cost range if specified.  
-          6. Each meal item must have realistic nutritional values (calories, protein, carbs, fats).  
-          7. The meal items listed in "LOCKED FOODS" must be included exactly as they are.
-
-          The response must be a valid JSON object with the following structure. **Do not add any additional text, notes, or explanations outside of the JSON block.** The "mealPlan" array must contain a plan for every single one of the ${plan_duration} days requested.
-
-          {
-            "mealPlan": [
-              {
-                "day": "Day 1",
-                "meals": [
-                  {
-                    "mealName": "Breakfast",
-                    "items": [
-                      { "food": "Scrambled eggs", "calories": 250, "protein": 15, "carbs": 2, "fats": 20 }
-                    ]
-                  }
-                ]
-              }
-            ]
-          }
-
-          Ensure each day's totals stay within the strict calorie deviation range and that macronutrients, diet preferences, exclusions, allergies, and cost constraints are respected.
-          `;
+    
+    if (!body.meals_per_day) {
+      return NextResponse.json({ error: "Meals per day is required" }, { status: 400 });
     }
+
+    const model = genAI.getGenerativeModel({ 
+      model: "gemini-1.5-flash",
+      generationConfig: {
+        temperature: 0.7,
+        topK: 1,
+        topP: 1,
+        maxOutputTokens: 4096,
+      }
+    });
+
+    const prompt = body.meal_to_regenerate && body.existing_meal_plan
+      ? buildRegenerationPrompt(body)
+      : buildFullPlanPrompt(body);
 
     const result = await model.generateContent(prompt);
     const text = result.response.text();
-
-    const cleanText = text.replace(/```json/g, '').replace(/```/g, '');
-    const jsonStartIndex = cleanText.indexOf('{');
-    const jsonEndIndex = cleanText.lastIndexOf('}') + 1;
-    const finalJsonString = cleanText.substring(jsonStartIndex, jsonEndIndex);
     
-    // Add a check to prevent parsing empty strings
-    if (!finalJsonString) {
-      throw new Error("Invalid JSON response from the AI model.");
+    // Clean and parse JSON response
+    const cleanedResponse = cleanJsonResponse(text);
+    const parsedResponse = JSON.parse(cleanedResponse);
+
+    // Handle regeneration vs full plan response
+    if (body.meal_to_regenerate && body.existing_meal_plan) {
+      const updatedPlan = updateMealPlan(
+        body.existing_meal_plan,
+        body.meal_to_regenerate,
+        parsedResponse
+      );
+      return NextResponse.json({ mealPlan: updatedPlan });
     }
-    
-    const parsedResponse = JSON.parse(finalJsonString);
 
-    if (meal_to_regenerate && existing_meal_plan) {
-      const newMeal = parsedResponse;
-      const updatedMealPlan = JSON.parse(JSON.stringify(existing_meal_plan));
-      updatedMealPlan[meal_to_regenerate.day_index].meals[meal_to_regenerate.meal_index] = newMeal;
-      return NextResponse.json({ mealPlan: updatedMealPlan });
+    // Validate full plan response
+    if (!parsedResponse.mealPlan || !Array.isArray(parsedResponse.mealPlan)) {
+      throw new Error("Invalid meal plan format from AI");
     }
 
     return NextResponse.json({ mealPlan: parsedResponse.mealPlan });
+
   } catch (error) {
     console.error("Error generating meal plan:", error);
-    return NextResponse.json({ error: "Failed to generate meal plan. Please try again." }, { status: 500 });
+    
+    // Return specific error messages
+    if (error instanceof SyntaxError) {
+      return NextResponse.json(
+        { error: "Invalid response format from AI. Please try again." }, 
+        { status: 500 }
+      );
+    }
+    
+    return NextResponse.json(
+      { error: error instanceof Error ? error.message : "Failed to generate meal plan" }, 
+      { status: 500 }
+    );
   }
+}
+
+function buildRegenerationPrompt(body: RequestBody): string {
+  const { meal_to_regenerate: regen, existing_meal_plan } = body;
+  if (!regen) throw new Error("Missing regeneration data");
+
+  const currentMeal = regen.current_meal;
+  const mealCalories = currentMeal.items.reduce((sum, item) => sum + item.calories, 0);
+  const mealProtein = currentMeal.items.reduce((sum, item) => sum + item.protein, 0);
+  const mealCarbs = currentMeal.items.reduce((sum, item) => sum + item.carbs, 0);
+  const mealFats = currentMeal.items.reduce((sum, item) => sum + item.fats, 0);
+
+  return `
+Regenerate ONLY the following meal while maintaining similar nutritional values:
+
+**Current Meal Plan Context:**
+${JSON.stringify(existing_meal_plan, null, 2)}
+
+**Meal to Replace:**
+- Name: ${currentMeal.mealName}
+- Target Calories: ${mealCalories} kcal (±10% acceptable)
+- Target Protein: ${mealProtein}g (±10% acceptable)
+- Target Carbs: ${mealCarbs}g (±10% acceptable)  
+- Target Fats: ${mealFats}g (±10% acceptable)
+
+**User Preferences:**
+- Diet Type: ${body.type_of_diet || "No restriction"}
+- Preferred Foods: ${body.prefered_foods || "None specified"}
+- Excluded Foods: ${body.excluded_foods || "None"}
+- Allergies/Intolerances: ${body.allergic_and_intolerances || "None"}
+
+**REQUIREMENTS:**
+1. Keep the exact meal name: "${currentMeal.mealName}"
+2. Stay within ±10% of nutritional targets
+3. Avoid foods in exclusion list and allergies
+4. Prefer foods from preferred list when possible
+5. Create varied, realistic food combinations
+
+Respond with ONLY this JSON structure (no additional text):
+{
+  "mealName": "${currentMeal.mealName}",
+  "items": [
+    { "food": "Food Name", "calories": 250, "protein": 20, "carbs": 15, "fats": 12 }
+  ]
+}`;
+}
+
+function buildFullPlanPrompt(body: RequestBody): string {
+  const duration = parseInt(body.plan_duration || "7");
+  
+  return `
+Generate a complete ${duration}-day meal plan with these specifications:
+
+**Daily Targets:**
+- Calories: ${body.calorie_target} kcal (±5% or ±100 kcal max deviation)
+- Meals per day: ${body.meals_per_day}
+- Protein: ${body.protein || "balanced"} grams
+- Carbs: ${body.carbs || "balanced"} grams  
+- Fats: ${body.fats || "balanced"} grams
+
+**Dietary Preferences:**
+- Diet Type: ${body.type_of_diet || "No restriction"}
+- Preferred Foods: ${body.prefered_foods || "None specified"}
+- Excluded Foods: ${body.excluded_foods || "None"}
+- Allergies/Intolerances: ${body.allergic_and_intolerances || "None"}
+- Daily Cost: ${body.daily_cost || "No limit"}
+
+**Locked Foods (MUST include exactly as shown):**
+${body.locked_items && body.locked_items.length > 0 ? 
+  JSON.stringify(body.locked_items, null, 2) : "None"}
+
+**STRICT REQUIREMENTS:**
+1. Daily calories must stay within ±5% of ${body.calorie_target} kcal
+2. Include all locked foods exactly as specified
+3. Never use excluded foods or allergens
+4. Prioritize preferred foods (use frequently)
+5. Distribute macros realistically across meals
+6. Use realistic portion sizes and nutritional values
+7. Create ${duration} complete days of meals
+
+Respond with ONLY this JSON structure (no additional text):
+{
+  "mealPlan": [
+    {
+      "day": "Day 1",
+      "meals": [
+        {
+          "mealName": "Breakfast",
+          "items": [
+            { "food": "Food Name", "calories": 300, "protein": 25, "carbs": 20, "fats": 15 }
+          ]
+        }
+      ]
+    }
+  ]
+}
+
+Generate ALL ${duration} days with consistent nutrition and variety.`;
+}
+
+function cleanJsonResponse(text: string): string {
+  // Remove markdown code blocks
+  const cleaned = text.replace(/```json/g, '').replace(/```/g, '');
+  
+  // Find JSON boundaries
+  const jsonStart = cleaned.indexOf('{');
+  const jsonEnd = cleaned.lastIndexOf('}') + 1;
+  
+  if (jsonStart === -1 || jsonEnd === 0) {
+    throw new Error("No valid JSON found in response");
+  }
+  
+  return cleaned.substring(jsonStart, jsonEnd);
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function updateMealPlan(existingPlan: any[], regenerationData: RegenerationRequest, newMeal: Meal): any[] {
+  const updatedPlan = JSON.parse(JSON.stringify(existingPlan));
+  updatedPlan[regenerationData.day_index].meals[regenerationData.meal_index] = newMeal;
+  return updatedPlan;
 }

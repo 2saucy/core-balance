@@ -22,7 +22,7 @@ interface IdealWeightResultsProps {
 }
 
 interface IdealWeightFormProps {
-    onCalculate: (results: any) => void;
+    onCalculate: (results: IdealWeightResult) => void;
 }
 
 export type { IdealWeightFormValues, IdealWeightResult, SavedIdealWeightResult, IdealWeightResultsProps, IdealWeightFormProps };

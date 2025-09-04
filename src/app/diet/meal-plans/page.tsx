@@ -20,6 +20,7 @@ import { MEAL_PLAN_CONSTANTS } from "@/lib/constants";
 import { MealPlansFormValues } from "@/lib/types/meal-types";
 import { FormatUtils } from "@/lib/utils";
 import { useMealPlansStore, useMealPlansUtils } from "@/store/meal-plans-store";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 
 
 export default function MealPlansPage() {
@@ -109,17 +110,17 @@ export default function MealPlansPage() {
   const shoppingList = generateShoppingList();
 
   return (
-    <div className="container mx-auto py-8 px-4 max-w-7xl">
+    <div className="flex flex-col gap-6 justify-center py-12 px-4 md:px-12 lg:px-[15%]">
       {/* Loading Overlay */}
-      <LoadingOverlay 
-        isLoading={loading} 
-        message={currentLoadingMessage} 
+      <LoadingOverlay
+        isLoading={loading}
+        message={currentLoadingMessage}
       />
 
       {/* Saved Plans Dialog */}
-      <SavedPlansDialog 
-        open={showSavedPlans} 
-        onOpenChange={setShowSavedPlans} 
+      <SavedPlansDialog
+        open={showSavedPlans}
+        onOpenChange={setShowSavedPlans}
       />
 
       <div className="space-y-8">
@@ -127,7 +128,7 @@ export default function MealPlansPage() {
         <PageHeader onShowSavedPlans={() => setShowSavedPlans(true)} />
 
         {/* Form Section */}
-        <ConfigurationCard 
+        <ConfigurationCard
           onGeneratePlan={handleGeneratePlan}
           lockedItemsCount={lockedItems.length}
         />
@@ -151,9 +152,9 @@ export default function MealPlansPage() {
             {/* Sidebar */}
             <div className="space-y-4">
               {currentTotals && (
-                <NutritionSummary 
-                  dayName={activeDay} 
-                  totals={currentTotals} 
+                <NutritionSummary
+                  dayName={activeDay}
+                  totals={currentTotals}
                 />
               )}
 
@@ -200,27 +201,29 @@ function PageHeader({ onShowSavedPlans }: { onShowSavedPlans: () => void }) {
   return (
     <div className="flex items-center justify-between">
       <div>
-        <h1 className="text-4xl font-bold mb-2">Planes de Comidas</h1>
+        <h1 className="text-4xl font-bold mb-2">Meal Plans Generator</h1>
         <p className="text-muted-foreground">
-          Genera planes personalizados según tus necesidades nutricionales
+          Generate personalized plans empowered by AI based on your nutritional needs
         </p>
       </div>
-      <Button 
-        variant="outline" 
-        onClick={onShowSavedPlans}
-        className="flex items-center gap-2"
-      >
-        <BookOpen className="h-4 w-4" />
-        Ver Planes Guardados
-      </Button>
+      <Tooltip>
+        <TooltipTrigger>
+          <Button variant="outline" size={"icon"} onClick={onShowSavedPlans}>
+            <BookOpen strokeWidth={1} className="h-4 w-4" />
+          </Button>
+        </TooltipTrigger>
+        <TooltipContent>
+          <p>View saved plans</p>
+        </TooltipContent>
+      </Tooltip>
     </div>
   );
 }
 
-function ConfigurationCard({ 
-  onGeneratePlan, 
-  lockedItemsCount 
-}: { 
+function ConfigurationCard({
+  onGeneratePlan,
+  lockedItemsCount
+}: {
   onGeneratePlan: (data: MealPlansFormValues) => void;
   lockedItemsCount: number;
 }) {
@@ -228,9 +231,9 @@ function ConfigurationCard({
     <Card>
       <CardHeader>
         <div className="flex items-center justify-between">
-          <CardTitle className="flex items-center gap-2">
+          <CardTitle className="flex items-center gap-2 font-normal">
             <Settings className="h-5 w-5" />
-            Configuración del Plan
+            Configuration
           </CardTitle>
           {lockedItemsCount > 0 && (
             <div className="text-sm text-muted-foreground">
@@ -246,11 +249,11 @@ function ConfigurationCard({
   );
 }
 
-function SavedPlansDialog({ 
-  open, 
-  onOpenChange 
-}: { 
-  open: boolean; 
+function SavedPlansDialog({
+  open,
+  onOpenChange
+}: {
+  open: boolean;
   onOpenChange: (open: boolean) => void;
 }) {
   return (
@@ -288,44 +291,39 @@ function MealPlanTabs({
   isItemLocked: (foodName: string) => boolean;
 }) {
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Tu Plan de Comidas</CardTitle>
-      </CardHeader>
-      <CardContent>
-        <Tabs value={activeDay} onValueChange={onDayChange}>
-          <TabsList className="grid w-full grid-cols-7">
-            {plan.map((dayPlan) => (
-              <TabsTrigger key={dayPlan.day} value={dayPlan.day}>
-                {dayPlan.day}
-              </TabsTrigger>
-            ))}
-          </TabsList>
-
+    <>
+      <Tabs value={activeDay} onValueChange={onDayChange}>
+        <TabsList className="grid w-full grid-cols-7">
           {plan.map((dayPlan) => (
-            <TabsContent key={dayPlan.day} value={dayPlan.day} className="space-y-4 mt-6">
-              {dayPlan.meals.map((meal: any, mealIndex: number) => {
-                const dayIndex = plan.findIndex(d => d.day === dayPlan.day);
-                const mealId = `${dayPlan.day}-${meal.mealName}-${mealIndex}`;
-                const isRegenerating = regeneratingMeal === mealId;
-
-                return (
-                  <MealCard
-                    key={mealId}
-                    meal={meal}
-                    mealIndex={mealIndex}
-                    dayIndex={dayIndex}
-                    isRegenerating={isRegenerating}
-                    onRegenerate={() => onRegenerateMeal(dayIndex, mealIndex, meal)}
-                    onToggleLock={onToggleLock}
-                    isItemLocked={isItemLocked}
-                  />
-                );
-              })}
-            </TabsContent>
+            <TabsTrigger key={dayPlan.day} value={dayPlan.day}>
+              {dayPlan.day}
+            </TabsTrigger>
           ))}
-        </Tabs>
-      </CardContent>
-    </Card>
+        </TabsList>
+
+        {plan.map((dayPlan) => (
+          <TabsContent key={dayPlan.day} value={dayPlan.day} className="space-y-4 mt-6">
+            {dayPlan.meals.map((meal: any, mealIndex: number) => {
+              const dayIndex = plan.findIndex(d => d.day === dayPlan.day);
+              const mealId = `${dayPlan.day}-${meal.mealName}-${mealIndex}`;
+              const isRegenerating = regeneratingMeal === mealId;
+
+              return (
+                <MealCard
+                  key={mealId}
+                  meal={meal}
+                  mealIndex={mealIndex}
+                  dayIndex={dayIndex}
+                  isRegenerating={isRegenerating}
+                  onRegenerate={() => onRegenerateMeal(dayIndex, mealIndex, meal)}
+                  onToggleLock={onToggleLock}
+                  isItemLocked={isItemLocked}
+                />
+              );
+            })}
+          </TabsContent>
+        ))}
+      </Tabs>
+    </>
   );
 }

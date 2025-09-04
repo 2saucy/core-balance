@@ -143,7 +143,7 @@ export const RoutineActions: React.FC = () => {
         <div className="flex flex-col gap-2">
           <Label className="opacity-0 hidden lg:block">_</Label>
           <Button onClick={addDay} variant="outline">
-            <Plus className="mr-2 h-4 w-4" /> Add Day
+            <Plus className="mr-2 h-4 w-4" /> Add day
           </Button>
         </div>
       </div>
@@ -154,21 +154,22 @@ export const RoutineActions: React.FC = () => {
           onClick={handleNewRoutine}
           variant="outline"
           disabled={isNewRoutine && !hasUnsavedChanges()}
+          className="cursor-pointer"
         >
-          <FilePlus className="mr-2 h-4 w-4" /> New
+          <FilePlus className="mr-2 h-4 w-4" /> New Routine
         </Button>
         
         <Button 
           onClick={saveRoutine} 
           disabled={!hasUnsavedChanges()}
-          className="bg-blue-600 hover:bg-blue-700 text-white"
+          className="bg-blue-600 hover:bg-blue-700 text-white cursor-pointer"
         >
-          <Save className="mr-2 h-4 w-4" /> Save
+          <Save className="mr-2 h-4 w-4" /> Save Routine
         </Button>
         
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="outline" size="icon">
+            <Button className="cursor-pointer" variant="outline" size="icon">
               <Menu className="h-4 w-4" />
             </Button>
           </DropdownMenuTrigger>
@@ -218,9 +219,9 @@ export const RoutineActions: React.FC = () => {
                 <DropdownMenuSeparator />
                 <DropdownMenuItem 
                   onClick={() => handleDeleteRoutine(selectedRoutineId!)}
-                  className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                  className="bg-red-500/20 text-red-500"
                 >
-                  <Trash className="mr-2 h-4 w-4" /> 
+                  <Trash className="text-red-500 mr-2 h-4 w-4" /> 
                   Delete Routine
                 </DropdownMenuItem>
               </>

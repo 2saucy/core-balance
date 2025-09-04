@@ -7,13 +7,14 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
-import { SquarePen, Trash, Plus } from "lucide-react";
+import { SquarePen, Trash, Plus, X, SquarePlus } from "lucide-react";
 import AddExerciseForm from "@/components/forms/add-exercise-form";
 import { Exercise } from "@/lib/types/routine-builder-types";
 import { ErrorBoundary } from "@/components/layout/error-boundary";
 import { formatDate } from "@/lib/utils";
 import { RoutineActions } from "@/components/routine-actions";
 import { useRoutineStore } from "@/store/routine-store";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 
 export default function RoutineBuilderPage() {
   const {
@@ -25,7 +26,7 @@ export default function RoutineBuilderPage() {
     currentRoutineId,
     createdAt,
     ui,
-    
+
     // Actions
     setRoutineName,
     updateUI,
@@ -37,10 +38,10 @@ export default function RoutineBuilderPage() {
     saveRoutine,
     getExercisesForDay,
     initialize,
-    
+
     // Computed
     hasUnsavedChanges,
-    
+
     // For unsaved changes handling
     loadRoutine,
     createNewRoutine,
@@ -57,13 +58,13 @@ export default function RoutineBuilderPage() {
   // Handle exercise save (add or edit)
   const handleSaveExercise = (exercise: Exercise) => {
     if (!ui.selectedDayName) return;
-    
+
     if (ui.editingIndex !== null) {
       editExercise(ui.selectedDayName, ui.editingIndex, exercise);
     } else {
       addExercise(ui.selectedDayName, exercise);
     }
-    
+
     updateUI({ dialogOpen: false, editingIndex: null, selectedDayName: undefined });
   };
 
@@ -71,7 +72,7 @@ export default function RoutineBuilderPage() {
   const openExerciseDialog = (dayName: string, exerciseIndex?: number) => {
     const day = routine.find(d => d.name === dayName);
     const exercise = exerciseIndex !== undefined ? day?.exercises[exerciseIndex] : undefined;
-    
+
     updateUI({
       dialogOpen: true,
       editingIndex: exerciseIndex ?? null,
@@ -99,7 +100,7 @@ export default function RoutineBuilderPage() {
     if (action === 'save') {
       saveRoutine();
     }
-    
+
     // Execute the pending action
     switch (ui.alertAction) {
       case 'new':
@@ -120,11 +121,11 @@ export default function RoutineBuilderPage() {
         clearAll();
         break;
     }
-    
-    updateUI({ 
-      alertOpen: false, 
-      alertAction: undefined, 
-      nextRoutineId: undefined 
+
+    updateUI({
+      alertOpen: false,
+      alertAction: undefined,
+      nextRoutineId: undefined
     });
   };
 
@@ -144,16 +145,16 @@ export default function RoutineBuilderPage() {
   return (
     <ErrorBoundary>
       <div className="flex flex-col gap-6 justify-center py-12 px-4 md:px-12 lg:px-[15%]">
-        
+
         {/* Header Section */}
         <div className="space-y-4">
-          <div>
+          <div className="mb-8">
             <h1 className="text-4xl font-bold tracking-tight">Custom Routine Builder</h1>
             <p className="text-muted-foreground mt-2">
               Build and customize your personalized workout routine
             </p>
           </div>
-          
+
           {/* Routine Info */}
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
@@ -161,12 +162,12 @@ export default function RoutineBuilderPage() {
                 {routineName || "Unnamed Routine"}
               </h2>
               {currentRoutineId === selectedRoutineId && !isNewRoutine && (
-                <Badge variant="secondary" className="bg-green-100 text-green-700">
+                <Badge variant="secondary" className="bg-green-400/50 dark:text-green-400 text-green-700">
                   Current
                 </Badge>
               )}
               {isNewRoutine && (
-                <Badge variant="secondary" className="bg-blue-100 text-blue-700">
+                <Badge variant="secondary" className="bg-blue-400/50 dark:text-blue-400 text-blue-700">
                   New
                 </Badge>
               )}
@@ -192,9 +193,7 @@ export default function RoutineBuilderPage() {
         <RoutineActions />
 
         {/* Days Section */}
-        <div className="space-y-6">
-          <h3 className="text-xl font-semibold">Workout Days</h3>
-          
+        <div className="space-y-6 mt-4">
           {routine.map((day, dayIndex) => (
             <div key={day.name} className="border rounded-lg overflow-hidden">
               {/* Day Header */}
@@ -202,29 +201,36 @@ export default function RoutineBuilderPage() {
                 <div className="flex items-center justify-between">
                   <h4 className="text-lg font-medium">{day.name}</h4>
                   <div className="flex items-center gap-2">
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() => openExerciseDialog(day.name)}
-                    >
-                      <Plus className="h-4 w-4 mr-1" />
-                      Add Exercise
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      onClick={() => handleEditDayName(dayIndex)}
-                    >
-                      <SquarePen className="h-4 w-4" />
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      onClick={() => deleteDay(dayIndex)}
-                      disabled={routine.length <= 1}
-                    >
-                      <Trash className="h-4 w-4" />
-                    </Button>
+                    <Tooltip>
+                      <TooltipTrigger>
+                        <Button size="sm" variant="ghost" onClick={() => openExerciseDialog(day.name)}>
+                          <SquarePlus className="h-4 w-4" />
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p>Add exercise</p>
+                      </TooltipContent>
+                    </Tooltip>
+                    <Tooltip>
+                      <TooltipTrigger>
+                        <Button size="sm" variant="ghost" onClick={() => handleEditDayName(dayIndex)}>
+                          <SquarePen className="h-4 w-4" />
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p>Edit day name</p>
+                      </TooltipContent>
+                    </Tooltip>
+                    <Tooltip>
+                      <TooltipTrigger>
+                        <Button size="sm" variant="ghost" className="cursor-pointer" onClick={() => deleteDay(dayIndex)} disabled={routine.length <= 1}>
+                          <X className="h-4 w-4" />
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p>Delete day</p>
+                      </TooltipContent>
+                    </Tooltip>
                   </div>
                 </div>
               </div>
@@ -234,14 +240,6 @@ export default function RoutineBuilderPage() {
                 {day.exercises.length === 0 ? (
                   <div className="text-center py-8">
                     <p className="text-muted-foreground">No exercises added yet</p>
-                    <Button
-                      variant="outline"
-                      className="mt-3"
-                      onClick={() => openExerciseDialog(day.name)}
-                    >
-                      <Plus className="h-4 w-4 mr-2" />
-                      Add First Exercise
-                    </Button>
                   </div>
                 ) : (
                   <div className="grid gap-3">

@@ -4,7 +4,10 @@ import * as React from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from "@/components/ui/select";
 import RepTracker from "@/components/rep-tracker";
-import { Day, Exercise, exercisesByCategory } from "@/hooks/use-routine";
+import { exercisesByCategory } from "@/lib/routine-builder-helpers";
+import { Exercise } from "@/lib/types/routine-builder-types";
+import { Day } from "date-fns";
+
 
 interface SavedRoutine {
   id: string;

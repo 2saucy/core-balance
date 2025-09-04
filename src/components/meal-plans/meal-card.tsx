@@ -1,10 +1,12 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardAction, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { ChevronDown, ChevronUp, RefreshCcw, Lock, LockOpen, Loader2 } from "lucide-react";
 import { Meal, MealItem } from "@/lib/types/meal-types";
+import { Tooltip, TooltipContent, TooltipTrigger } from "../ui/tooltip";
+import { cn } from "@/lib/utils";
 
 
 interface MealCardProps {
@@ -24,19 +26,20 @@ export function MealCard({
   onToggleLock,
   isItemLocked,
 }: MealCardProps) {
-  const [isOpen, setIsOpen] = useState(false);
+  const [isOpen, setIsOpen] = useState(true);
 
   return (
-    <Collapsible open={isOpen} onOpenChange={setIsOpen}>
-      <Card>
-        <CollapsibleTrigger asChild>
-          <CardHeader className="cursor-pointer hover:bg-muted/50 transition-colors">
-            <div className="flex items-center justify-between">
-              <CardTitle className="text-lg">{meal.mealName}</CardTitle>
-              <div className="flex items-center gap-2">
+    <Collapsible className="bg-secondary rounded-2xl" open={isOpen} onOpenChange={setIsOpen}>
+      <CollapsibleTrigger className="p-4 text-muted-foreground hover:text-primary hover:underline underline-offset-4" asChild>
+        <div className="cursor-pointer flex items-center justify-between">
+          <p>{meal.mealName}</p>
+          <div className="flex items-center gap-2">
+            <Tooltip>
+              <TooltipTrigger>
                 <Button
                   variant="ghost"
                   size="sm"
+                  className="text-muted-foreground hover:text-primary cursor-pointer"
                   onClick={(e) => {
                     e.stopPropagation();
                     onRegenerate();
@@ -49,36 +52,55 @@ export function MealCard({
                     <RefreshCcw className="h-4 w-4" />
                   )}
                 </Button>
-                {isOpen ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
-              </div>
-            </div>
-          </CardHeader>
-        </CollapsibleTrigger>
-
-        <CollapsibleContent>
-          <CardContent className="pt-0">
-            {isRegenerating ? (
-              <div className="space-y-2">
-                <div className="animate-pulse">
-                  <div className="h-12 bg-muted rounded-md mb-2" />
-                  <div className="h-12 bg-muted rounded-md" />
-                </div>
-              </div>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Regenerate meal</p>
+              </TooltipContent>
+            </Tooltip>
+            {isOpen ? (
+              <Tooltip>
+                <TooltipTrigger>
+                  <ChevronUp className="h-4 w-4 mr-2" />
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Close Collapsible</p>
+                </TooltipContent>
+              </Tooltip>
             ) : (
-              <div className="space-y-3">
-                {meal.items.map((item, itemIndex) => (
-                  <FoodItemCard
-                    key={itemIndex}
-                    item={item}
-                    isLocked={isItemLocked(item.food)}
-                    onToggleLock={() => onToggleLock(item)}
-                  />
-                ))}
-              </div>
+              <Tooltip>
+                <TooltipTrigger>
+                  <ChevronDown className="h-4 w-4  mr-2" />
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Open Collapsible</p>
+                </TooltipContent>
+              </Tooltip>
             )}
-          </CardContent>
-        </CollapsibleContent>
-      </Card>
+          </div>
+        </div>
+      </CollapsibleTrigger>
+
+      <CollapsibleContent className="p-4">
+        {isRegenerating ? (
+          <div className="space-y-2">
+            <div className="animate-pulse">
+              <div className="h-12 bg-muted rounded-md mb-2" />
+              <div className="h-12 bg-muted rounded-md" />
+            </div>
+          </div>
+        ) : (
+          <div className="space-y-3">
+            {meal.items.map((item, itemIndex) => (
+              <FoodItemCard
+                key={itemIndex}
+                item={item}
+                isLocked={isItemLocked(item.food)}
+                onToggleLock={() => onToggleLock(item)}
+              />
+            ))}
+          </div>
+        )}
+      </CollapsibleContent>
     </Collapsible>
   );
 }
@@ -92,23 +114,39 @@ interface FoodItemCardProps {
 
 function FoodItemCard({ item, isLocked, onToggleLock }: FoodItemCardProps) {
   return (
-    <Card className="p-3">
-      <div className="flex items-center justify-between ">
-        <h4 className="font-medium">{item.food}</h4>
-        <Button variant="ghost" size="sm" onClick={onToggleLock}>
-          {isLocked ? (
-            <Lock className="h-4 w-4 text-primary" />
-          ) : (
-            <LockOpen className="h-4 w-4" />
-          )}
-        </Button>
-      </div>
-      <div className="flex gap-2 flex-wrap">
+    <Card className="p-4 gap-2">
+      <CardHeader className="p-0">
+        <CardTitle className="font-normal">{item.food}</CardTitle>
+        <CardAction>
+          <Button variant="ghost" size={"icon"} className={cn("cursor-pointer aspect-square rounded-full text-muted-foreground", isLocked && "bg-red-500/20 text-red-700 dark:text-red-400")} onClick={onToggleLock} >
+            {isLocked ? (
+              <Tooltip>
+                <TooltipTrigger>
+                  <Lock strokeWidth={1.5} className="h-4 w-4" />
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Unlock</p>
+                </TooltipContent>
+              </Tooltip>
+            ) : (
+              <Tooltip>
+                <TooltipTrigger>
+                  <LockOpen strokeWidth={1.5} className="h-4 w-4" />
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Lock</p>
+                </TooltipContent>
+              </Tooltip>
+            )}
+          </Button>
+        </CardAction>
+      </CardHeader>
+      <CardFooter className="p-0 space-x-2">
         <Badge variant="outline">{item.calories} kcal Calories</Badge>
         <Badge variant="outline" className="text-red-600">{item.protein}g Protein</Badge>
         <Badge variant="outline" className="text-blue-600">{item.carbs}g Carbs</Badge>
         <Badge variant="outline" className="text-green-600">{item.fats}g Fats</Badge>
-      </div>
+      </CardFooter>
     </Card>
   );
 }

@@ -1,4 +1,4 @@
-import { BicepsFlexed, Calculator, ChartColumn, Dumbbell, Home, Search, Settings, Vegan } from "lucide-react"
+import { Calculator, ChartColumn, Dumbbell, Home, Utensils } from "lucide-react"
 
 import {
     Sidebar,
@@ -52,8 +52,8 @@ const items = [
         ],
     },
     {
-        title: "Diet",
-        icon: Vegan,
+        title: "Nutrition",
+        icon: Utensils,
         children: [
             { title: "Meal Plans", url: "/diet/meal-plans" },
             { title: "Grocery List", url: "/calculators/grocery-list" },
@@ -76,15 +76,12 @@ const items = [
 
 export function AppSidebar() {
     return (
-        <Sidebar className="p-2">
-            <SidebarHeader>
-                <div className="flex items-center gap-2">
-                    <BicepsFlexed />
-                    <h1 className="text-xl font-bold">CoreBalance</h1>
-                </div>
+        <Sidebar className="p-2 dark:bg-black bg-white">
+            <SidebarHeader className="dark:bg-black bg-white">
+                <h1 className="text-2xl font-bold mt-2">CoreBalance</h1>
                 <p className="text-sm text-muted-foreground">Your fitness companion</p>
             </SidebarHeader>
-            <SidebarContent>
+            <SidebarContent className="dark:bg-black bg-white">
                 <SidebarGroup>
                     <SidebarGroupLabel>Application</SidebarGroupLabel>
                     <SidebarGroupContent>

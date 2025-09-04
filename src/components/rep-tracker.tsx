@@ -25,6 +25,8 @@ import { Dialog, DialogClose, DialogContent, DialogHeader, DialogTitle, DialogTr
 import { WorkoutTimer } from "@/components/workout-timer";
 import { Badge } from "@/components/ui/badge";
 import { useRepTracker } from "@/hooks/use-rep.tracker";
+import { Tooltip, TooltipContent, TooltipTrigger } from "./ui/tooltip";
+import { useTheme } from "next-themes";
 
 interface RepTrackerProps {
   exerciseName: string;
@@ -32,6 +34,8 @@ interface RepTrackerProps {
 }
 
 export default function RepTracker({ exerciseName, category }: RepTrackerProps) {
+  const { theme } = useTheme();
+
   const {
     logs,
     currentSets,
@@ -76,37 +80,39 @@ export default function RepTracker({ exerciseName, category }: RepTrackerProps) 
   };
 
   return (
-    <Card className="p-4">
-      <CardHeader className="p-0 pt-0">
+    <Card>
+      <CardHeader>
         <CardTitle className="text-2xl font-bold truncate">{exerciseName}</CardTitle>
       </CardHeader>
-      <CardContent className="h-full p-0">
-        <div className="flex flex-col gap-2 text-sm text-muted-foreground">
-          <div className="flex items-center gap-2">
-            <TrendingUp className="h-4 w-4" />
-            <span><b>1RM</b> : {maxOneRepMax ? `${maxOneRepMax} kg` : "Unknown"}</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <SquareStack className="h-4 w-4" />
-            <span><b>Category</b> : {category || "Unknown"}</span>
-          </div>
-          {lastLog && (
-            <div className="flex items-center gap-2">
-              <Calendar className="h-4 w-4" />
-              <span><b>Last workout</b> : {lastLog.date}</span>
-            </div>
-          )}
+      <CardContent className="flex flex-col gap-2 text-xs text-muted-foreground h-full mb-2">
+        <div className="flex items-center gap-2">
+          <TrendingUp className="h-4 w-4" />
+          <span><b>1RM</b> : {maxOneRepMax ? `${maxOneRepMax} kg` : "Unknown"}</span>
+        </div>
+        <div className="flex items-center gap-2">
+          <SquareStack className="h-4 w-4" />
+          <span><b>Category</b> : {category || "Unknown"}</span>
+        </div>
+        <div className="flex items-center gap-2">
+          <Calendar className="h-4 w-4" />
+          <span><b>Last workout</b> : {lastLog == null ? "None" : lastLog.date}</span>
         </div>
       </CardContent>
-      <CardFooter className="p-0 mt-auto">
+      <CardFooter className="mt-auto">
         <div className="grid grid-cols-2 gap-4 w-full">
           <Dialog open={isWorkoutDialogOpen} onOpenChange={setIsWorkoutDialogOpen}>
-            <DialogTrigger asChild>
-              <Button onClick={handleStartWorkout} className="h-24 flex-col justify-center gap-2">
-                <Play className="h-6 w-6" />
-                <span className="text-sm">Start Workout</span>
-              </Button>
-            </DialogTrigger>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <DialogTrigger asChild>
+                  <Button onClick={handleStartWorkout} className="h-16 flex-col justify-center gap-2">
+                    <Play fill={theme === "dark" ? "black" : "white"} className="h-6 w-6" />
+                  </Button>
+                </DialogTrigger>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Start exercise</p>
+              </TooltipContent>
+            </Tooltip>
             <DialogContent>
               <DialogHeader>
                 <DialogTitle>Workout Session</DialogTitle>
@@ -123,8 +129,13 @@ export default function RepTracker({ exerciseName, category }: RepTrackerProps) 
                     <div className="my-4 space-y-8">
                       <WorkoutTimer onTimeUpdate={updateSetDuration} ref={timerRef} />
                       <div className="flex justify-center">
-                        <Button onClick={handleToggleTimer} className="flex items-center justify-center rounded-full aspect-square h-16">
-                          {timerRunning ? <Pause /> : <Play />}
+                        <Button onClick={handleToggleTimer} className="duration-200 hover:scale-105 flex items-center justify-center rounded-full aspect-square h-16">
+                          {timerRunning ? (
+                            <Pause className="size-6" fill={theme === "dark" ? "black" : "white"} />
+
+                          ) : (
+                            <Play className="size-6" fill={theme === "dark" ? "black" : "white"} />
+                          )}
                         </Button>
                       </div>
                     </div>
@@ -193,12 +204,18 @@ export default function RepTracker({ exerciseName, category }: RepTrackerProps) 
             </DialogContent>
           </Dialog>
           <Dialog open={isHistoryOpen} onOpenChange={setIsHistoryOpen}>
-            <DialogTrigger asChild>
-              <Button variant="outline" className="h-24 flex-col justify-center gap-2">
-                <History className="h-6 w-6" />
-                <span className="text-sm">See History</span>
-              </Button>
-            </DialogTrigger>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <DialogTrigger asChild>
+                  <Button variant="outline" className="h-16 flex-col justify-center gap-2">
+                    <History className="h-6 w-6" />
+                  </Button>
+                </DialogTrigger>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>View history</p>
+              </TooltipContent>
+            </Tooltip>
             <DialogContent>
               <DialogHeader>
                 <DialogTitle>Workout History</DialogTitle>

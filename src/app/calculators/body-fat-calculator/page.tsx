@@ -10,6 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { Trash2 } from "lucide-react";
 import { GenericResultsTable } from "@/components/generic-results-table";
 import { useCalculatorHistory } from "@/hooks/use-calculator-history";
+import { useUnits } from "@/hooks/use-units";
 
 export default function BodyFatPage() {
   const {
@@ -20,6 +21,8 @@ export default function BodyFatPage() {
     handleDelete,
     handleClearAll
   } = useCalculatorHistory<BodyFatResult>("body_fat_history");
+
+  const units = useUnits()
 
   const getBodyFatClassification = (bodyFat: number) => {
     if (bodyFat < 14) return "Low";
@@ -42,7 +45,7 @@ export default function BodyFatPage() {
       <div className="space-y-1">
         <p className="text-sm text-muted-foreground">
           <span className="font-bold">Lean Body Mass:</span> {res.leanBodyMass}{" "}
-          {res.units === "metric" ? "kg" : "lbs"}
+          { units === "metric" ? "kg" : "lbs"}
         </p>
       </div>
     </div>
@@ -118,10 +121,10 @@ export default function BodyFatPage() {
       <TableCell>
         <Badge>{getBodyFatClassification(item.bodyFatPercentage)}</Badge>
       </TableCell>
-      <TableCell>{item.fatMass} {item.units === "metric" ? "kg" : "lbs"}</TableCell>
-      <TableCell>{item.leanBodyMass} {item.units === "metric" ? "kg" : "lbs"}</TableCell>
-      <TableCell>{item.weight} {item.units === "metric" ? "kg" : "lbs"}</TableCell>
-      <TableCell>{item.height} {item.units === "metric" ? "cm" : "in"}</TableCell>
+      <TableCell>{item.fatMass} {units === "metric" ? "kg" : "lbs"}</TableCell>
+      <TableCell>{item.leanBodyMass} {units === "metric" ? "kg" : "lbs"}</TableCell>
+      <TableCell>{item.weight} {units === "metric" ? "kg" : "lbs"}</TableCell>
+      <TableCell>{item.height} {units === "metric" ? "cm" : "in"}</TableCell>
       <TableCell className="text-right">
         <Button variant="ghost" size="icon" onClick={() => handleDelete(index)}>
           <Trash2 className="h-4 w-4 text-red-500" />
